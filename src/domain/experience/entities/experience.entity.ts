@@ -1,0 +1,79 @@
+import { Slug } from "src/domain/shared/value-objects/slug/slug.value-object";
+import { ExperienceId } from "../value-objects/experience-id.value-object";
+import { Periode } from "src/domain/shared/value-objects/periode/periode.value-object";
+import { Contexte } from "../value-objects/contexte.value-object";
+import { Lien } from "src/domain/shared/value-objects/lien/lien.value-object";
+import { Projet } from "./projet.entity";
+import { ProjectHorsPeriodeError } from "../errors/projet-hors-periode.error";
+
+export interface CreateExperienceParams {
+    id: ExperienceId;
+    slug: Slug;
+    periode: Periode;
+    titre: string;
+    entreprise: string;
+    contexte: Contexte;
+    description: string;
+    lienDemo: Lien | null;
+    projets?: Projet[];
+}
+
+export class Experience {
+    private constructor(
+        private readonly _id: ExperienceId,
+        private _slug: Slug,
+        private _periode: Periode,
+        private _titre: string,
+        private _entreprise: string,
+        private _contexte: Contexte,
+        private _description: string,
+        private _lienDemo: Lien | null,
+        private readonly _projets: Projet[],
+    ) {}
+
+    static create(params: CreateExperienceParams): Experience {
+        return new Experience(
+          params.id,
+          params.slug,
+          params.periode,
+          params.titre,
+          params.entreprise,
+          params.contexte,
+          params.description,
+          params.lienDemo,
+          params.projets ?? [],
+        );
+    }
+
+    get id(): ExperienceId {
+        return this._id;
+    }
+
+    get slug(): Slug {
+        return this._slug;
+    }
+
+    get periode(): Periode {
+        return this._periode;
+    }
+
+    get titre(): string {
+        return this._titre;
+    }
+
+    get entreprise(): string {
+        return this._entreprise;
+    }
+
+    get contexte(): Contexte {
+        return this._contexte;
+    }
+
+    get description(): string {
+        return this._description;
+    }
+
+    get lienDemo(): Lien | null {
+        return this._lienDemo;
+    }
+}
