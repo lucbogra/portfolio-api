@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Experience {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  dateDebut   DateTime  @map("date_debut")
+  dateFin     DateTime? @map("date_fin")
+  titre       String
+  entreprise  String
+  contexte    Contexte
+  description String
+  lienDemo    String?   @map("lien_demo")
+  projets     Projet[]
+
+  @@map("experiences")
+}
+
+enum Contexte {
+  FREELANCE
+  CDI
+  CONSULTANT
+  CDD
+}
+
+model Projet {
+  id           String    @id @default(uuid())
+  experienceId String?   @map("experience_id")
+  slug         String    @unique
+  nom          String
+  image        String?
+  dateDebut    DateTime  @map("date_debut")
+  dateFin      DateTime? @map("date_fin")
+  github       String?
+  details      String
+  lienDemo     String?   @map("lien_demo")
+
+  experience   Experience? @relation(fields: [experienceId], references: [id])
+
+  @@map("projets")
+}
+
+model Categorie {
+  id        String @id @default(uuid())
+  slug      String @unique
+  nom       String
+  articles  Article[]
+
+  @@map("categories")
+}
+
+model Article {
+  id              String @id @default(uuid())
+  slug            String @unique
+  categorieId     String @map("categorie_id")
+  nom             String
+  image           String?
+  contenu         String
+  datePublication DateTime? @map("date_publication")
+  statut          StatutArticle
+
+  categorie Categorie @relation(fields: [categorieId], references: [id])
+
+  @@map("articles")
+
+}
+
+enum StatutArticle {
+  BROUILLON
+  PUBLIE
+  INACTIF
+}
+
+model Profil {
+  id          String  @id @default(uuid())
+  titre       String
+  description String
+  telephone   String
+  github      String?
+  linkedin    String?
+  pays        String
+  ville       String
+  adresse     String?
+
+  @@map("profils")
+}

@@ -1,6 +1,6 @@
-import { Lien } from "src/domain/shared/value-objects/lien/lien.value-object";
-import { Telephone } from "src/domain/shared/value-objects/telephone/telephone.value-object";
-import { ProfilId } from "../value-object/profil-id.value-objects";
+import { Lien } from "src/domain/shared/value-objects/lien/lien.value-object.js";
+import { Telephone } from "src/domain/shared/value-objects/telephone/telephone.value-object.js";
+import { ProfilId } from "../value-object/profil-id.value-objects.js";
 
 export interface CreateProfilParams {
     titre: string;

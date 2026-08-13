@@ -1,4 +1,4 @@
-import { Profil } from '../entities/profil.entity';
+import { Profil } from '../entities/profil.entity.js';
 
 export interface ProfilRepository {
   save(profil: Profil): Promise<void>;

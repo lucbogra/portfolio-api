@@ -1,5 +1,5 @@
-import { Slug } from "../../shared/value-objects/slug/slug.value-object";
-import { CategorieId } from "../value-objects/categorie-id.value-object";
+import { Slug } from "../../shared/value-objects/slug/slug.value-object.js";
+import { CategorieId } from "../value-objects/categorie-id.value-object.js";
 
 export interface CreateCategorieParams {
     id: CategorieId;

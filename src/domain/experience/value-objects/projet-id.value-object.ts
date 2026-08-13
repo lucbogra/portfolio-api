@@ -13,10 +13,10 @@ export class ProjetId {
     }
 
     toString(): string {
-    return this.value;
+        return this.value;
     }
     
     equals(other: ProjetId): boolean {
-    return this.value === other.value;
+        return this.value === other.value;
     }
 }

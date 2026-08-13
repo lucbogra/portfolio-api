@@ -1,12 +1,12 @@
-import { Slug } from "../../shared/value-objects/slug/slug.value-object";
-import { ArticleId } from "../value-objects/article-id.value-object";
-import { CategorieId } from "../value-objects/categorie-id.value-object";
-import { StatutArticle, StatutArticleType } from "../value-objects/statut-article.value-object";
+import { Slug } from "src/domain/shared/value-objects/slug/slug.value-object.js";
+import { ArticleId } from "../value-objects/article-id.value-object.js";
+import { CategorieId } from "../value-objects/categorie-id.value-object.js";
+import { StatutArticle, StatutArticleType } from "../value-objects/statut-article.value-object.js";
 
 export interface CreateArticleParams {
     id: ArticleId;
     slug: Slug;
-    categoryId: CategorieId;
+    categorieId: CategorieId;
     nom: string;
     image: string | null;
     contenu: string;
@@ -30,7 +30,7 @@ export class Article {
         return new Article(
             params.id,
             params.slug,
-            params.categoryId,
+            params.categorieId,
             params.nom,
             params.image,
             params.contenu,

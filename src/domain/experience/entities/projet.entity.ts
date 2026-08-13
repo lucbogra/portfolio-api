@@ -1,8 +1,8 @@
-import { Slug } from "src/domain/shared/value-objects/slug/slug.value-object";
-import { ProjetId } from "../value-objects/projet-id.value-object";
-import { Periode } from "src/domain/shared/value-objects/periode/periode.value-object";
-import { Lien } from "src/domain/shared/value-objects/lien/lien.value-object";
-import { ExperienceId } from "../value-objects/experience-id.value-object";
+import { ProjetId } from "../value-objects/projet-id.value-object.js";
+import { ExperienceId } from "../value-objects/experience-id.value-object.js";
+import { Periode } from "src/domain/shared/value-objects/periode/periode.value-object.js";
+import { Lien } from "src/domain/shared/value-objects/lien/lien.value-object.js";
+import { Slug } from "src/domain/shared/value-objects/slug/slug.value-object.js";
 
 export interface CreateProjetParams {
     id: ProjetId;

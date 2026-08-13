@@ -1,7 +1,7 @@
-import { Projet } from '../entities/projet.entity';
-import { ProjetId } from '../value-objects/projet-id.value-object';
-import { ExperienceId } from '../value-objects/experience-id.value-object';
-import { Slug } from '../../shared/value-objects/slug/slug.value-object';
+import { Slug } from "src/domain/shared/value-objects/slug/slug.value-object.js";
+import { Projet } from "../entities/projet.entity.js";
+import { ProjetId } from "../value-objects/projet-id.value-object.js";
+import { ExperienceId } from "../value-objects/experience-id.value-object.js";
 
 export interface ProjetRepository {
   save(projet: Projet): Promise<void>;

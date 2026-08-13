@@ -1,4 +1,4 @@
-import { InvalidLienError } from "./lien.errors";
+import { InvalidLienError } from "./lien.errors.js";
 
 export class Lien {
     private constructor(private readonly url: string) {}

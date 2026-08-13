@@ -1,4 +1,4 @@
-import { InvalidTelephoneError } from "./telephone.errors";
+import { InvalidTelephoneError } from "./telephone.errors.js";
 
 export class Telephone {
   // Format E.164 : + suivi de 8 à 15 chiffres (norme internationale ITU-T)

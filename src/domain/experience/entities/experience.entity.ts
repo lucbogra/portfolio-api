@@ -1,10 +1,10 @@
-import { Slug } from "src/domain/shared/value-objects/slug/slug.value-object";
-import { ExperienceId } from "../value-objects/experience-id.value-object";
-import { Periode } from "src/domain/shared/value-objects/periode/periode.value-object";
-import { Contexte } from "../value-objects/contexte.value-object";
-import { Lien } from "src/domain/shared/value-objects/lien/lien.value-object";
-import { Projet } from "./projet.entity";
-import { ProjectHorsPeriodeError } from "../errors/projet-hors-periode.error";
+import { Slug } from "src/domain/shared/value-objects/slug/slug.value-object.js";
+import { ExperienceId } from "../value-objects/experience-id.value-object.js";
+import { Periode } from "src/domain/shared/value-objects/periode/periode.value-object.js";
+import { Contexte } from "../value-objects/contexte.value-object.js";
+import { Lien } from "src/domain/shared/value-objects/lien/lien.value-object.js";
+import { Projet } from "./projet.entity.js";
+
 
 export interface CreateExperienceParams {
     id: ExperienceId;

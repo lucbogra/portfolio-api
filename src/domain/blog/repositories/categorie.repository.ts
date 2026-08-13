@@ -1,6 +1,6 @@
-import { Categorie } from '../entities/categorie.entity';
-import { CategorieId } from '../value-objects/categorie-id.value-object';
-import { Slug } from '../../shared/value-objects/slug/slug.value-object';
+import { Categorie } from '../entities/categorie.entity.js';
+import { CategorieId } from '../value-objects/categorie-id.value-object.js';
+import { Slug } from '../../shared/value-objects/slug/slug.value-object.js';
 
 export interface CategorieRepository {
   save(categorie: Categorie): Promise<void>;

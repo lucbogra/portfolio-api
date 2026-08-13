@@ -1,4 +1,4 @@
-import { InvalidSlugError } from "./slug.errors";
+import { InvalidSlugError } from "./slug.errors.js";
 
 export class Slug {
     private constructor(private readonly value: string) {}

@@ -1,4 +1,4 @@
-import { StatutArticleType } from '../value-objects/statut-article.value-object';
+import { StatutArticleType } from '../value-objects/statut-article.value-object.js';
 
 export class TransitionStatutInvalideError extends Error {
   constructor(depuis: StatutArticleType, vers: StatutArticleType) {

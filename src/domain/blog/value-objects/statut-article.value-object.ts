@@ -1,4 +1,4 @@
-import { TransitionStatutInvalideError } from "../errors/transition-statut-invalide.error";
+import { TransitionStatutInvalideError } from "../errors/transition-statut-invalide.error.js";
 
 export enum StatutArticleType {
     BROUILLON = 'brouillon',
