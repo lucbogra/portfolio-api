@@ -5,6 +5,7 @@ import { PrismaService } from 'src/shared/infrastructure/prisma.service.js';
 import { CategorieMapper } from 'src/modules/blog/infrastructure/mappers/categorie.mapper.js';
 import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
 import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
 
 @Injectable()
 export class PrismaCategorieRepository implements CategorieRepository {
@@ -12,11 +13,17 @@ export class PrismaCategorieRepository implements CategorieRepository {
 
   async save(categorie: Categorie): Promise<void> {
     const data = CategorieMapper.toPersistence(categorie);
-    await this.prisma.categorie.upsert({
-      where: { id: data.id },
-      create: data,
-      update: data,
-    });
+    try {
+      await this.prisma.categorie.upsert({
+        where: { id: data.id },
+        create: data,
+        update: data,
+      });
+    } catch (error) {
+      handleUniqueConstraintError(error, data.slug);
+      throw error;
+    }
+    
   }
 
   async findById(id: CategorieId): Promise<Categorie | null> {

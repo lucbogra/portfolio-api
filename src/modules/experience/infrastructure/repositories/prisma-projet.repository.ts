@@ -6,6 +6,7 @@ import { ProjetMapper } from 'src/modules/experience/infrastructure/mappers/proj
 import { ProjetId } from 'src/modules/experience/domain/value-objects/projet-id.value-object.js';
 import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
 import { ExperienceId } from 'src/modules/experience/domain/value-objects/experience-id.value-object.js';
+import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
 
 @Injectable()
 export class PrismaProjetRepository implements ProjetRepository {
@@ -13,11 +14,17 @@ export class PrismaProjetRepository implements ProjetRepository {
 
   async save(projet: Projet): Promise<void> {
     const data = ProjetMapper.toPersistence(projet);
-    await this.prisma.projet.upsert({
-      where: { id: data.id },
-      create: data,
-      update: data,
-    });
+    try {
+      await this.prisma.projet.upsert({
+        where: { id: data.id },
+        create: data,
+        update: data,
+      });
+    } catch (error) {
+      handleUniqueConstraintError(error, data.slug);
+      throw error;
+    }
+    
   }
 
   async findById(id: ProjetId): Promise<Projet | null> {

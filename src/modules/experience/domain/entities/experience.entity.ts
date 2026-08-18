@@ -17,6 +17,15 @@ export interface CreateExperienceParams {
   projets?: Projet[];
 }
 
+export interface UpdateExperienceParams {
+  periode: Periode;
+  titre: string;
+  entreprise: string;
+  contexte: Contexte;
+  description: string;
+  lienDemo: Lien | null;
+}
+
 export class Experience {
   private constructor(
     private readonly _id: ExperienceId,
@@ -74,5 +83,14 @@ export class Experience {
 
   get lienDemo(): Lien | null {
     return this._lienDemo;
+  }
+
+  update(params: UpdateExperienceParams): void {
+    this._titre = params.titre;
+    this._entreprise = params.entreprise;
+    this._contexte = params.contexte;
+    this._description = params.description;
+    this._periode = params.periode;
+    this._lienDemo = params.lienDemo;
   }
 }

@@ -6,6 +6,7 @@ import { ArticleMapper } from 'src/modules/blog/infrastructure/mappers/article.m
 import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.value-object.js';
 import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
 import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
 
 @Injectable()
 export class PrismaArticleRepository implements ArticleRepository {
@@ -13,11 +14,17 @@ export class PrismaArticleRepository implements ArticleRepository {
 
   async save(article: Article): Promise<void> {
     const data = ArticleMapper.toPersistence(article);
-    await this.prisma.article.upsert({
-      where: { id: data.id },
-      create: data,
-      update: data,
-    });
+    try {
+      await this.prisma.article.upsert({
+        where: { id: data.id },
+        create: data,
+        update: data,
+      });
+    } catch (error)  {
+      handleUniqueConstraintError(error, data.slug);
+      throw error;
+    }
+    
   }
 
   async findById(id: ArticleId): Promise<Article | null> {
