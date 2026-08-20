@@ -1,4 +1,4 @@
-import { Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put } from "@nestjs/common";
+import { Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
 import { CreateExperienceInput, CreateExperienceUseCase } from "../../application/use-cases/create-experience.use-case.js";
 import { GetExperienceBySlugUseCase } from "../../application/use-cases/get-experience-by-slug.use-case.js";
 import { UpdateExperienceUseCase } from "../../application/use-cases/update-experience.use-case.js";
@@ -9,6 +9,7 @@ import { ExperienceResponseDto } from "../dtos/experience-response.dto.js";
 import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
 import { ExperienceIntrouvableError } from "../../domain/errors/experience-introuvable.error.js";
 import { UpdateExperienceDto } from "../dtos/update-experience.dto.js";
+import { AuthGuard } from "src/modules/auth/auth.guard.js";
 
 @Controller('experiences')
 export class ExperienceController {
@@ -21,6 +22,7 @@ export class ExperienceController {
     ) {}
 
     @Post()
+    @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.CREATED)
     async create(@Body() dto: CreateExperienceDto): Promise<ExperienceResponseDto> {
         try {
@@ -67,6 +69,7 @@ export class ExperienceController {
     }
 
     @Put(':id')
+    @UseGuards(AuthGuard)
     async update(@Param('id', ParseUUIDPipe) id:string, @Body() dto: UpdateExperienceDto): Promise<ExperienceResponseDto> {
         try {
             const raw = await this.updateExperienceUseCase.execute({
@@ -90,6 +93,7 @@ export class ExperienceController {
     }
 
     @Delete(':id')
+    @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
         try {
