@@ -16,6 +16,16 @@ export interface CreateProjetParams {
   lienDemo: Lien | null;
 }
 
+export interface UpdateProjetParams {
+  experienceId: ExperienceId | null;
+  nom: string;
+  image: string | null;
+  periode: Periode;
+  github: Lien | null;
+  details: string;
+  lienDemo: Lien | null;
+}
+
 export class Projet {
   private constructor(
     private readonly _id: ProjetId,
@@ -41,6 +51,16 @@ export class Projet {
       params.details,
       params.lienDemo,
     );
+  }
+
+  update(params: UpdateProjetParams): void {
+    this._experienceId  = params.experienceId;
+    this._nom           = params.nom;
+    this._image         = params.image;
+    this._periode       = params.periode;
+    this._github        = params.github;
+    this._details       = params.details;
+    this._lienDemo      = params.lienDemo;
   }
 
   get id(): ProjetId {

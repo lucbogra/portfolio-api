@@ -11,7 +11,7 @@ export class CreateExperienceDto {
 
     @IsOptional()
     @IsDateString()
-    dateFin!: string;
+    dateFin?: string;
 
     @IsString()
     @IsNotEmpty()
@@ -30,5 +30,5 @@ export class CreateExperienceDto {
 
     @IsOptional()
     @IsUrl()
-    lienDemo: string;
+    lienDemo?: string;
 }

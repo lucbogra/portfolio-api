@@ -55,8 +55,8 @@ export class ExperienceController {
         return experiences.map(ExperienceResponseDto.fromDomain);
     }
 
-    @Get(':slug')
-    async getById(@Param('slug') slug: string): Promise<ExperienceResponseDto> {
+    @Get('/:slug')
+    async getBySlug(@Param('slug') slug: string): Promise<ExperienceResponseDto> {
         try {
             const raw = await this.getExperienceBySlugUseCase.execute(slug);
             return ExperienceResponseDto.fromDomain(raw);
@@ -68,7 +68,7 @@ export class ExperienceController {
         }
     }
 
-    @Put(':id')
+    @Put('/:id')
     @UseGuards(AuthGuard)
     async update(@Param('id', ParseUUIDPipe) id:string, @Body() dto: UpdateExperienceDto): Promise<ExperienceResponseDto> {
         try {
@@ -92,7 +92,7 @@ export class ExperienceController {
         }
     }
 
-    @Delete(':id')
+    @Delete('/:id')
     @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {

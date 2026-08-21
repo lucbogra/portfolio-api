@@ -7,6 +7,7 @@ import { ProjetId } from 'src/modules/experience/domain/value-objects/projet-id.
 import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
 import { ExperienceId } from 'src/modules/experience/domain/value-objects/experience-id.value-object.js';
 import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+import { handleForeignKeyConstraintViolation } from '../errors/projets-experience-id-fkey-error-handler.js';
 
 @Injectable()
 export class PrismaProjetRepository implements ProjetRepository {
@@ -22,6 +23,9 @@ export class PrismaProjetRepository implements ProjetRepository {
       });
     } catch (error) {
       handleUniqueConstraintError(error, data.slug);
+      if(data.experienceId) {
+        handleForeignKeyConstraintViolation(error, data.experienceId?.toString());
+      }
       throw error;
     }
     

@@ -7,7 +7,7 @@ import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js'
 import { Projet as PrismaProjet } from 'src/generated/prisma/client.js';
 
 export class ProjetMapper {
-  static toDomain(raw: PrismaProjet): Projet {
+  static toDomain(raw: PrismaProjet): Projet {    
     return Projet.create({
       id: ProjetId.create(raw.id),
       slug: Slug.create(raw.slug),

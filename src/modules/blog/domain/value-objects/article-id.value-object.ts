@@ -2,7 +2,7 @@ export class ArticleId {
   private constructor(private readonly value: string) {}
 
   static create(value: string): ArticleId {
-    if (!value || value.trim.length === 0) {
+    if (!value || value.trim().length === 0) {
       throw Error('ArticleId ne peut être vide');
     }
     return new ArticleId(value);

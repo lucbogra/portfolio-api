@@ -10,7 +10,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env', }),
     PrismaModule,
     AuthModule,
     ExperienceModule,

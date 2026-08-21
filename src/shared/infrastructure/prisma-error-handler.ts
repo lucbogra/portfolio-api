@@ -1,21 +1,8 @@
 import { SlugDejaUtiliseError } from 'src/shared/domain/errors/slug-deja-utilise.error.js';
-
-interface PrismaP2002Error {
-  code?: string;
-  meta?: {
-    driverAdapterError?: {
-      cause?: {
-        kind?: string;
-        constraint?: {
-          fields?: string[];
-        };
-      };
-    };
-  };
-}
+import { PrismaError } from './prisma-error-interface.js';
 
 export function handleUniqueConstraintError(error: unknown, slug: string): void {
-  const err = error as PrismaP2002Error;
+  const err = error as PrismaError;
 
   if (err.code !== 'P2002') {
     return;
