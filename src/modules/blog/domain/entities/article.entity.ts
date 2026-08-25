@@ -15,6 +15,17 @@ export interface CreateArticleParams {
   contenu: string;
 }
 
+export interface ReconstituteArticleParam {
+  id: ArticleId;
+  slug: Slug;
+  categorieId: CategorieId;
+  nom: string;
+  image: string | null;
+  contenu: string;
+  datePublication: Date | null;
+  statut: StatutArticle;
+}
+
 export interface UpdateArticleParams {
   categorieId: CategorieId;
   nom: string;
@@ -44,6 +55,19 @@ export class Article {
       params.contenu,
       null,
       StatutArticle.brouillon(),
+    );
+  }
+
+  static reconstitute(params: ReconstituteArticleParam): Article {
+    return new Article(
+      params.id,
+      params.slug,
+      params.categorieId,
+      params.nom,
+      params.image,
+      params.contenu,
+      params.datePublication,
+      params.statut
     );
   }
 

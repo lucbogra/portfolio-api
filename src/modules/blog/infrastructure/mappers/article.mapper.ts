@@ -29,7 +29,7 @@ const PRISMA_TO_DOMAIN_STATUT_ARTICLE: Record<
 
 export class ArticleMapper {
   static toDomain(raw: PrismaArticle): Article {
-    return Article.create({
+    return Article.reconstitute({
       id: ArticleId.create(raw.id),
       slug: Slug.create(raw.slug),
       categorieId: CategorieId.create(raw.categorieId),

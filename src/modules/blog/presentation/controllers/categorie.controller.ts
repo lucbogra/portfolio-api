@@ -11,6 +11,7 @@ import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise
 import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
 import { UpdateCategorieDto } from "../dtos/update-categorie.dto.js";
 import { Categorie } from "../../domain/entities/categorie.entity.js";
+import { CategorieUtiliseeError } from "../../domain/errors/categorie-utilisee.error.js";
 
 @Controller('categories')
 export class CategorieController {
@@ -88,6 +89,9 @@ export class CategorieController {
             if(error instanceof CategorieIntrouvableError) {
                 throw new NotFoundException(error.message);
             }
+            if (error instanceof CategorieUtiliseeError) {
+                throw new ConflictException(error.message);
+              }
             throw error;
         }
     }

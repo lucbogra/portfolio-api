@@ -6,6 +6,7 @@ import { CategorieMapper } from 'src/modules/blog/infrastructure/mappers/categor
 import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
 import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
 import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+import { handleCategorieEnUsageError } from '../errors/categorie-en-usage-error-handler.js';
 
 @Injectable()
 export class PrismaCategorieRepository implements CategorieRepository {
@@ -48,8 +49,13 @@ export class PrismaCategorieRepository implements CategorieRepository {
   }
 
   async delete(id: CategorieId): Promise<void> {
-    await this.prisma.categorie.delete({
-      where: { id: id.toString() },
-    });
+    try {
+      await this.prisma.categorie.delete({
+        where: { id: id.toString() },
+      });
+    } catch (error) {
+      handleCategorieEnUsageError(error, id.toString());
+      throw error;
+    }
   }
 }
