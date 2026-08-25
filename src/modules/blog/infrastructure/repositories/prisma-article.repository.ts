@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
 import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
 import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
 import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
 
 @Injectable()
 export class PrismaArticleRepository implements ArticleRepository {
@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
       });
     } catch (error)  {
       handleUniqueConstraintError(error, data.slug);
+      handleForeignKeyConstraintViolation(error, data.categorieId);
       throw error;
     }
     

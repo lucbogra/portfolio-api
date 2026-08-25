@@ -8,6 +8,10 @@ export class CategorieId {
     return new CategorieId(value);
   }
 
+  static generate(): CategorieId {
+    return new CategorieId(crypto.randomUUID()); 
+  }
+
   toString(): string {
     return this.value;
   }

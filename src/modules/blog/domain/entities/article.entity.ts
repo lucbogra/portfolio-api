@@ -13,8 +13,13 @@ export interface CreateArticleParams {
   nom: string;
   image: string | null;
   contenu: string;
-  datePublication: Date | null;
-  statut?: StatutArticle;
+}
+
+export interface UpdateArticleParams {
+  categorieId: CategorieId;
+  nom: string;
+  image: string | null;
+  contenu: string;
 }
 
 export class Article {
@@ -37,8 +42,8 @@ export class Article {
       params.nom,
       params.image,
       params.contenu,
-      params.datePublication,
-      params.statut ?? StatutArticle.brouillon(),
+      null,
+      StatutArticle.brouillon(),
     );
   }
 
@@ -74,6 +79,13 @@ export class Article {
     return this._statut;
   }
 
+  update(params: UpdateArticleParams): void {
+    this._categorieId = params.categorieId;
+    this._nom = params.nom;
+    this._contenu = params.contenu;
+    this._image = params.image;
+  }
+
   publier(): void {
     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
     this._datePublication = this._datePublication ?? new Date();
@@ -81,5 +93,12 @@ export class Article {
 
   desactiver(): void {
     this._statut = this._statut.transitionnerVers(StatutArticleType.INACTIF);
+  }
+
+  changerStatut(cible: StatutArticleType): void {
+    this._statut = this._statut.transitionnerVers(cible);
+    if (cible === StatutArticleType.PUBLIE) {
+      this._datePublication = this._datePublication ?? new Date();
+    }
   }
 }

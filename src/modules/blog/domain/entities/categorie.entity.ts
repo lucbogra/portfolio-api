@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
   id: CategorieId;
   slug: Slug;
   nom: string;
-}
+};
+
+export interface UpdateCategorieParams {
+  nom: string;
+};
 
 export class Categorie {
   private constructor(
@@ -28,5 +32,9 @@ export class Categorie {
 
   get nom(): string {
     return this._nom;
+  }
+
+  update(params: UpdateCategorieParams): void {
+    this._nom = params.nom;
   }
 }
