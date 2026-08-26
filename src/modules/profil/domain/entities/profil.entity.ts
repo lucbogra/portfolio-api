@@ -13,6 +13,17 @@ export interface CreateProfilParams {
   adresse: string | null;
 }
 
+export interface UpdateProfilParams {
+  titre: string;
+  description: string;
+  telephone: Telephone;
+  github: Lien | null;
+  linkedin: Lien | null;
+  pays: string;
+  ville: string;
+  adresse: string | null;
+}
+
 export class Profil {
   private constructor(
     private readonly _id: ProfilId,
@@ -74,5 +85,16 @@ export class Profil {
 
   get adresse(): string | null {
     return this._adresse;
+  }
+
+  update(params: UpdateProfilParams): void {
+    this._titre = params.titre;
+    this._description = params.description;
+    this._telephone = params.telephone
+    this._adresse = params.adresse;
+    this._pays = params.pays;
+    this._ville = params.ville;
+    this._linkedin = params.linkedin;
+   this._github = params.github;
   }
 }

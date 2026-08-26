@@ -9,7 +9,7 @@ describe('ArticleController (e2e)', () => {
     let app: INestApplication;
     let prisma: PrismaService;
     let token: string;
-    let categorieId: string;
+    let categorieId: string;    
 
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({

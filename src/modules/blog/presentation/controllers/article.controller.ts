@@ -128,6 +128,7 @@ export class ArticleController {
 
     @Delete('/:id')
     @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
     async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
         try {
             await this.deleteArticleUseCase.execute(id);
