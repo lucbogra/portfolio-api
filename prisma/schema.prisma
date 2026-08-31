@@ -46,34 +46,33 @@ model Projet {
   details      String
   lienDemo     String?   @map("lien_demo")
 
-  experience   Experience? @relation(fields: [experienceId], references: [id])
+  experience Experience? @relation(fields: [experienceId], references: [id])
 
   @@map("projets")
 }
 
 model Categorie {
-  id        String @id @default(uuid())
-  slug      String @unique
-  nom       String
-  articles  Article[]
+  id       String    @id @default(uuid())
+  slug     String    @unique
+  nom      String
+  articles Article[]
 
   @@map("categories")
 }
 
 model Article {
-  id              String @id @default(uuid())
-  slug            String @unique
-  categorieId     String @map("categorie_id")
+  id              String        @id @default(uuid())
+  slug            String        @unique
+  categorieId     String        @map("categorie_id")
   nom             String
   image           String?
   contenu         String
-  datePublication DateTime? @map("date_publication")
+  datePublication DateTime?     @map("date_publication")
   statut          StatutArticle
 
   categorie Categorie @relation(fields: [categorieId], references: [id])
 
   @@map("articles")
-
 }
 
 enum StatutArticle {
@@ -94,4 +93,38 @@ model Profil {
   adresse     String?
 
   @@map("profils")
+}
+
+model Tag {
+  id   String  @id @default(uuid())
+  nom  String  @unique
+  type TagType
+
+  taggables Taggable[]
+
+  @@map("tags")
+}
+
+enum TagType {
+  STACK
+  SOFT_SKILL
+  AUTRE
+}
+
+model Taggable {
+  id           String       @id @default(uuid())
+  tagId        String       @map("tag_id")
+  taggableType TaggableType @map("taggable_type")
+  taggableId   String       @map("taggable_id")
+
+  tag Tag @relation(fields: [tagId], references: [id])
+
+  @@unique([tagId, taggableType, taggableId])
+  @@map("taggables")
+}
+
+enum TaggableType {
+  EXPERIENCE
+  PROJET
+  ARTICLE
 }

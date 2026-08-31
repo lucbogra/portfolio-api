@@ -1,0 +1,4140 @@
+diff --git a/blog-changes.diff b/blog-changes.diff
+deleted file mode 100644
+index 2c2da82..0000000
+--- a/blog-changes.diff
++++ /dev/null
+@@ -1,97 +0,0 @@
+-diff --git a/src/modules/blog/domain/entities/article.entity.ts b/src/modules/blog/domain/entities/article.entity.ts
+-index 790f3e5..13ef987 100644
+---- a/src/modules/blog/domain/entities/article.entity.ts
+-+++ b/src/modules/blog/domain/entities/article.entity.ts
+-@@ -14,7 +14,15 @@ export interface CreateArticleParams {
+-   image: string | null;
+-   contenu: string;
+-   datePublication: Date | null;
+--  statut?: StatutArticle;
+-+  statut: StatutArticle | null;
+-+}
+-+
+-+export interface UpdateArticleParams {
+-+  categorieId: CategorieId;
+-+  nom: string;
+-+  image: string | null;
+-+  contenu: string;
+-+  datePublication: Date | null;
+- }
+- 
+- export class Article {
+-@@ -74,6 +82,14 @@ export class Article {
+-     return this._statut;
+-   }
+- 
+-+  update(params: UpdateArticleParams): void {
+-+    this._categorieId = params.categorieId;
+-+    this._nom = params.nom;
+-+    this._contenu = params.contenu;
+-+    this._image = params.image;
+-+    this._datePublication = params.datePublication
+-+  }
+-+
+-   publier(): void {
+-     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
+-     this._datePublication = this._datePublication ?? new Date();
+-diff --git a/src/modules/blog/domain/entities/categorie.entity.ts b/src/modules/blog/domain/entities/categorie.entity.ts
+-index 989235f..b37b891 100644
+---- a/src/modules/blog/domain/entities/categorie.entity.ts
+-+++ b/src/modules/blog/domain/entities/categorie.entity.ts
+-@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
+-   id: CategorieId;
+-   slug: Slug;
+-   nom: string;
+--}
+-+};
+-+
+-+export interface UpdateCreateParams {
+-+  nom: string;
+-+};
+- 
+- export class Categorie {
+-   private constructor(
+-@@ -29,4 +33,8 @@ export class Categorie {
+-   get nom(): string {
+-     return this._nom;
+-   }
+-+
+-+  update(params: UpdateCreateParams): void {
+-+    this._nom = params.nom;
+-+  }
+- }
+-diff --git a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-index 1eacf44..fdde28b 100644
+---- a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+++ b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-@@ -8,6 +8,10 @@ export class CategorieId {
+-     return new CategorieId(value);
+-   }
+- 
+-+  static generate(): CategorieId {
+-+    return new CategorieId(crypto.randomUUID()); 
+-+  }
+-+
+-   toString(): string {
+-     return this.value;
+-   }
+-diff --git a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-index ada692f..968440b 100644
+---- a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+++ b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
+- import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+- import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+- import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+-+import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
+- 
+- @Injectable()
+- export class PrismaArticleRepository implements ArticleRepository {
+-@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
+-       });
+-     } catch (error)  {
+-       handleUniqueConstraintError(error, data.slug);
+-+      handleForeignKeyConstraintViolation(error, data.categorieId);
+-       throw error;
+-     }
+-     
+diff --git a/blog-full-diff.txt b/blog-full-diff.txt
+deleted file mode 100644
+index 7fb268b..0000000
+--- a/blog-full-diff.txt
++++ /dev/null
+@@ -1,3277 +0,0 @@
+-diff --git a/blog-changes.diff b/blog-changes.diff
+-new file mode 100644
+-index 0000000..2c2da82
+---- /dev/null
+-+++ b/blog-changes.diff
+-@@ -0,0 +1,97 @@
+-+diff --git a/src/modules/blog/domain/entities/article.entity.ts b/src/modules/blog/domain/entities/article.entity.ts
+-+index 790f3e5..13ef987 100644
+-+--- a/src/modules/blog/domain/entities/article.entity.ts
+-++++ b/src/modules/blog/domain/entities/article.entity.ts
+-+@@ -14,7 +14,15 @@ export interface CreateArticleParams {
+-+   image: string | null;
+-+   contenu: string;
+-+   datePublication: Date | null;
+-+-  statut?: StatutArticle;
+-++  statut: StatutArticle | null;
+-++}
+-++
+-++export interface UpdateArticleParams {
+-++  categorieId: CategorieId;
+-++  nom: string;
+-++  image: string | null;
+-++  contenu: string;
+-++  datePublication: Date | null;
+-+ }
+-+ 
+-+ export class Article {
+-+@@ -74,6 +82,14 @@ export class Article {
+-+     return this._statut;
+-+   }
+-+ 
+-++  update(params: UpdateArticleParams): void {
+-++    this._categorieId = params.categorieId;
+-++    this._nom = params.nom;
+-++    this._contenu = params.contenu;
+-++    this._image = params.image;
+-++    this._datePublication = params.datePublication
+-++  }
+-++
+-+   publier(): void {
+-+     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
+-+     this._datePublication = this._datePublication ?? new Date();
+-+diff --git a/src/modules/blog/domain/entities/categorie.entity.ts b/src/modules/blog/domain/entities/categorie.entity.ts
+-+index 989235f..b37b891 100644
+-+--- a/src/modules/blog/domain/entities/categorie.entity.ts
+-++++ b/src/modules/blog/domain/entities/categorie.entity.ts
+-+@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
+-+   id: CategorieId;
+-+   slug: Slug;
+-+   nom: string;
+-+-}
+-++};
+-++
+-++export interface UpdateCreateParams {
+-++  nom: string;
+-++};
+-+ 
+-+ export class Categorie {
+-+   private constructor(
+-+@@ -29,4 +33,8 @@ export class Categorie {
+-+   get nom(): string {
+-+     return this._nom;
+-+   }
+-++
+-++  update(params: UpdateCreateParams): void {
+-++    this._nom = params.nom;
+-++  }
+-+ }
+-+diff --git a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+index 1eacf44..fdde28b 100644
+-+--- a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-++++ b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+@@ -8,6 +8,10 @@ export class CategorieId {
+-+     return new CategorieId(value);
+-+   }
+-+ 
+-++  static generate(): CategorieId {
+-++    return new CategorieId(crypto.randomUUID()); 
+-++  }
+-++
+-+   toString(): string {
+-+     return this.value;
+-+   }
+-+diff --git a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+index ada692f..968440b 100644
+-+--- a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-++++ b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
+-+ import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+-+ import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+-+ import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+-++import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
+-+ 
+-+ @Injectable()
+-+ export class PrismaArticleRepository implements ArticleRepository {
+-+@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
+-+       });
+-+     } catch (error)  {
+-+       handleUniqueConstraintError(error, data.slug);
+-++      handleForeignKeyConstraintViolation(error, data.categorieId);
+-+       throw error;
+-+     }
+-+     
+-diff --git a/blog-full-diff.txt b/blog-full-diff.txt
+-new file mode 100644
+-index 0000000..d4ff588
+---- /dev/null
+-+++ b/blog-full-diff.txt
+-@@ -0,0 +1,2185 @@
+-+diff --git a/blog-changes.diff b/blog-changes.diff
+-+new file mode 100644
+-+index 0000000..2c2da82
+-+--- /dev/null
+-++++ b/blog-changes.diff
+-+@@ -0,0 +1,97 @@
+-++diff --git a/src/modules/blog/domain/entities/article.entity.ts b/src/modules/blog/domain/entities/article.entity.ts
+-++index 790f3e5..13ef987 100644
+-++--- a/src/modules/blog/domain/entities/article.entity.ts
+-+++++ b/src/modules/blog/domain/entities/article.entity.ts
+-++@@ -14,7 +14,15 @@ export interface CreateArticleParams {
+-++   image: string | null;
+-++   contenu: string;
+-++   datePublication: Date | null;
+-++-  statut?: StatutArticle;
+-+++  statut: StatutArticle | null;
+-+++}
+-+++
+-+++export interface UpdateArticleParams {
+-+++  categorieId: CategorieId;
+-+++  nom: string;
+-+++  image: string | null;
+-+++  contenu: string;
+-+++  datePublication: Date | null;
+-++ }
+-++ 
+-++ export class Article {
+-++@@ -74,6 +82,14 @@ export class Article {
+-++     return this._statut;
+-++   }
+-++ 
+-+++  update(params: UpdateArticleParams): void {
+-+++    this._categorieId = params.categorieId;
+-+++    this._nom = params.nom;
+-+++    this._contenu = params.contenu;
+-+++    this._image = params.image;
+-+++    this._datePublication = params.datePublication
+-+++  }
+-+++
+-++   publier(): void {
+-++     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
+-++     this._datePublication = this._datePublication ?? new Date();
+-++diff --git a/src/modules/blog/domain/entities/categorie.entity.ts b/src/modules/blog/domain/entities/categorie.entity.ts
+-++index 989235f..b37b891 100644
+-++--- a/src/modules/blog/domain/entities/categorie.entity.ts
+-+++++ b/src/modules/blog/domain/entities/categorie.entity.ts
+-++@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
+-++   id: CategorieId;
+-++   slug: Slug;
+-++   nom: string;
+-++-}
+-+++};
+-+++
+-+++export interface UpdateCreateParams {
+-+++  nom: string;
+-+++};
+-++ 
+-++ export class Categorie {
+-++   private constructor(
+-++@@ -29,4 +33,8 @@ export class Categorie {
+-++   get nom(): string {
+-++     return this._nom;
+-++   }
+-+++
+-+++  update(params: UpdateCreateParams): void {
+-+++    this._nom = params.nom;
+-+++  }
+-++ }
+-++diff --git a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-++index 1eacf44..fdde28b 100644
+-++--- a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+++++ b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-++@@ -8,6 +8,10 @@ export class CategorieId {
+-++     return new CategorieId(value);
+-++   }
+-++ 
+-+++  static generate(): CategorieId {
+-+++    return new CategorieId(crypto.randomUUID()); 
+-+++  }
+-+++
+-++   toString(): string {
+-++     return this.value;
+-++   }
+-++diff --git a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-++index ada692f..968440b 100644
+-++--- a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+++++ b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-++@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
+-++ import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+-++ import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+-++ import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+-+++import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
+-++ 
+-++ @Injectable()
+-++ export class PrismaArticleRepository implements ArticleRepository {
+-++@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
+-++       });
+-++     } catch (error)  {
+-++       handleUniqueConstraintError(error, data.slug);
+-+++      handleForeignKeyConstraintViolation(error, data.categorieId);
+-++       throw error;
+-++     }
+-++     
+-+diff --git a/blog-full-diff.txt b/blog-full-diff.txt
+-+new file mode 100644
+-+index 0000000..e7e25d8
+-+--- /dev/null
+-++++ b/blog-full-diff.txt
+-+@@ -0,0 +1,1086 @@
+-++diff --git a/blog-changes.diff b/blog-changes.diff
+-++new file mode 100644
+-++index 0000000..2c2da82
+-++--- /dev/null
+-+++++ b/blog-changes.diff
+-++@@ -0,0 +1,97 @@
+-+++diff --git a/src/modules/blog/domain/entities/article.entity.ts b/src/modules/blog/domain/entities/article.entity.ts
+-+++index 790f3e5..13ef987 100644
+-+++--- a/src/modules/blog/domain/entities/article.entity.ts
+-++++++ b/src/modules/blog/domain/entities/article.entity.ts
+-+++@@ -14,7 +14,15 @@ export interface CreateArticleParams {
+-+++   image: string | null;
+-+++   contenu: string;
+-+++   datePublication: Date | null;
+-+++-  statut?: StatutArticle;
+-++++  statut: StatutArticle | null;
+-++++}
+-++++
+-++++export interface UpdateArticleParams {
+-++++  categorieId: CategorieId;
+-++++  nom: string;
+-++++  image: string | null;
+-++++  contenu: string;
+-++++  datePublication: Date | null;
+-+++ }
+-+++ 
+-+++ export class Article {
+-+++@@ -74,6 +82,14 @@ export class Article {
+-+++     return this._statut;
+-+++   }
+-+++ 
+-++++  update(params: UpdateArticleParams): void {
+-++++    this._categorieId = params.categorieId;
+-++++    this._nom = params.nom;
+-++++    this._contenu = params.contenu;
+-++++    this._image = params.image;
+-++++    this._datePublication = params.datePublication
+-++++  }
+-++++
+-+++   publier(): void {
+-+++     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
+-+++     this._datePublication = this._datePublication ?? new Date();
+-+++diff --git a/src/modules/blog/domain/entities/categorie.entity.ts b/src/modules/blog/domain/entities/categorie.entity.ts
+-+++index 989235f..b37b891 100644
+-+++--- a/src/modules/blog/domain/entities/categorie.entity.ts
+-++++++ b/src/modules/blog/domain/entities/categorie.entity.ts
+-+++@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
+-+++   id: CategorieId;
+-+++   slug: Slug;
+-+++   nom: string;
+-+++-}
+-++++};
+-++++
+-++++export interface UpdateCreateParams {
+-++++  nom: string;
+-++++};
+-+++ 
+-+++ export class Categorie {
+-+++   private constructor(
+-+++@@ -29,4 +33,8 @@ export class Categorie {
+-+++   get nom(): string {
+-+++     return this._nom;
+-+++   }
+-++++
+-++++  update(params: UpdateCreateParams): void {
+-++++    this._nom = params.nom;
+-++++  }
+-+++ }
+-+++diff --git a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+++index 1eacf44..fdde28b 100644
+-+++--- a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-++++++ b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+++@@ -8,6 +8,10 @@ export class CategorieId {
+-+++     return new CategorieId(value);
+-+++   }
+-+++ 
+-++++  static generate(): CategorieId {
+-++++    return new CategorieId(crypto.randomUUID()); 
+-++++  }
+-++++
+-+++   toString(): string {
+-+++     return this.value;
+-+++   }
+-+++diff --git a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+++index ada692f..968440b 100644
+-+++--- a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-++++++ b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+++@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
+-+++ import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+-+++ import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+-+++ import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+-++++import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
+-+++ 
+-+++ @Injectable()
+-+++ export class PrismaArticleRepository implements ArticleRepository {
+-+++@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
+-+++       });
+-+++     } catch (error)  {
+-+++       handleUniqueConstraintError(error, data.slug);
+-++++      handleForeignKeyConstraintViolation(error, data.categorieId);
+-+++       throw error;
+-+++     }
+-+++     
+-++diff --git a/src/modules/blog/application/use-cases/create-article.use-case.ts b/src/modules/blog/application/use-cases/create-article.use-case.ts
+-++new file mode 100644
+-++index 0000000..103a937
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/create-article.use-case.ts
+-++@@ -0,0 +1,42 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+++import { StatutArticle, StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+++import { Article } from "../../domain/entities/article.entity.js";
+-+++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+++
+-+++export interface CreateArticleInput {
+-+++    slug: string;
+-+++    categorieId: string;
+-+++    nom: string;
+-+++    image: string | null;
+-+++    contenu: string;
+-+++    datePublication: Date | null;
+-+++    statut: StatutArticleType | null;
+-+++}
+-+++
+-+++@Injectable()
+-+++export class CreateArticleUseCase {
+-+++    constructor(
+-+++        @Inject(ARTICLE_REPOSITORY)
+-+++        private readonly articleRepository: ArticleRepository
+-+++    ) {}
+-+++
+-+++    async execute(input: CreateArticleInput): Promise<Article> {
+-+++        const article = Article.create({
+-+++            id: ArticleId.generate(),
+-+++            slug: Slug.create(input.slug),
+-+++            categorieId: CategorieId.create(input.categorieId),
+-+++            nom: input.nom,
+-+++            image: input.image,
+-+++            contenu: input.contenu,
+-+++            datePublication: input.datePublication,
+-+++            statut: input.statut ? StatutArticle.create(input.statut) : null
+-+++        });
+-+++
+-+++        await this.articleRepository.save(article);
+-+++
+-+++        return article;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/create-categorie.use-case.ts b/src/modules/blog/application/use-cases/create-categorie.use-case.ts
+-++new file mode 100644
+-++index 0000000..90be2fd
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/create-categorie.use-case.ts
+-++@@ -0,0 +1,28 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+++
+-+++export interface CreateCategorieInput {
+-+++    slug: string;
+-+++    nom: string;
+-+++};
+-+++
+-+++@Injectable()
+-+++export class CreateCategorieUseCase {
+-+++    constructor (
+-+++        @Inject(CATEGORIE_REPOSITORY)
+-+++        private categorieRepository: CategorieRepository
+-+++    ) {}
+-+++
+-+++    async execute(input: CreateCategorieInput): Promise<Categorie> {
+-+++        const category = Categorie.create({
+-+++            id: CategorieId.generate(),
+-+++            slug: Slug.create(input.slug),
+-+++            nom: input.nom
+-+++        });
+-+++        await this.categorieRepository.save(category);
+-+++        return category;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/delete-article.use-case.ts b/src/modules/blog/application/use-cases/delete-article.use-case.ts
+-++new file mode 100644
+-++index 0000000..a786835
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/delete-article.use-case.ts
+-++@@ -0,0 +1,21 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+++
+-+++@Injectable()
+-+++export class DeleteArticleUseCase {
+-+++    constructor(
+-+++        @Inject(ARTICLE_REPOSITORY)
+-+++        private readonly articleRepository: ArticleRepository
+-+++    ) {}
+-+++
+-+++    async execute(id: string): Promise<void> {
+-+++        const articleId = ArticleId.create(id);
+-+++        const article = this.articleRepository.findById(articleId);
+-+++        if(!article) {
+-+++            throw new ArticleIntrouvableError(id);
+-+++        }
+-+++        await this.articleRepository.delete(articleId);
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/delete-categorie.use-case.ts b/src/modules/blog/application/use-cases/delete-categorie.use-case.ts
+-++new file mode 100644
+-++index 0000000..a6bb7c7
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/delete-categorie.use-case.ts
+-++@@ -0,0 +1,23 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+++
+-+++@Injectable()
+-+++export class DeleteCategorieUseCase {
+-+++    constructor(
+-+++        @Inject(CATEGORIE_REPOSITORY)
+-+++        private readonly categorieRepository: CategorieRepository
+-+++    ) {}
+-+++
+-+++    async execute(id: string): Promise<void> {
+-+++        const categorieId = CategorieId.create(id);
+-+++        const categorie = await this.categorieRepository.findById(categorieId);
+-+++
+-+++        if(!categorie) {
+-+++            throw new CategorieIntrouvableError(id);
+-+++        }
+-+++        
+-+++        await this.categorieRepository.delete(categorieId);
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts b/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts
+-++new file mode 100644
+-++index 0000000..c939ead
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts
+-++@@ -0,0 +1,24 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+++import { Article } from "../../domain/entities/article.entity.js";
+-+++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+++
+-+++@Injectable()
+-+++export class GetArticleBySlugUseCase {
+-+++    constructor(
+-+++        @Inject(ARTICLE_REPOSITORY)
+-+++        private readonly articleRepository: ArticleRepository
+-+++    ) {}
+-+++
+-+++    async execute(slug: string): Promise<Article> {
+-+++       
+-+++        const article = await this.articleRepository.findBySlug(Slug.create(slug));
+-+++
+-+++        if(!article) {
+-+++            throw new ArticleIntrouvableError(slug);
+-+++        }
+-+++        
+-+++        return article;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts b/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts
+-++new file mode 100644
+-++index 0000000..2fd7dae
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts
+-++@@ -0,0 +1,16 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+++import { Article } from "../../domain/entities/article.entity.js";
+-+++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+++
+-+++@Injectable()
+-+++export class GetArticlesByCategorie {
+-+++    constructor(
+-+++        @Inject(ARTICLE_REPOSITORY)
+-+++        private readonly articleRepository: ArticleRepository
+-+++    ) {}
+-+++
+-+++    async execute(categorieId: string): Promise<Article[]> {
+-+++        return await this.articleRepository.findByCategorie(CategorieId.create(categorieId));
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts b/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts
+-++new file mode 100644
+-++index 0000000..c5279e6
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts
+-++@@ -0,0 +1,23 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+++
+-+++@Injectable()
+-+++export class GetCategorieBySlugUseCase {
+-+++    constructor(
+-+++        @Inject(CATEGORIE_REPOSITORY)
+-+++        private readonly categorieRepository: CategorieRepository
+-+++    ) {}
+-+++
+-+++    async execute(slug: string): Promise<Categorie> {
+-+++        const categorie = await this.categorieRepository.findBySlug(Slug.create(slug));
+-+++
+-+++        if(!categorie) {
+-+++            throw new CategorieIntrouvableError(slug);
+-+++        }
+-+++
+-+++        return categorie;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/list-articles.use-case.ts b/src/modules/blog/application/use-cases/list-articles.use-case.ts
+-++new file mode 100644
+-++index 0000000..4c1a358
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/list-articles.use-case.ts
+-++@@ -0,0 +1,15 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+++import { Article } from "../../domain/entities/article.entity.js";
+-+++
+-+++@Injectable()
+-+++export class ListArticleUseCase {
+-+++    constructor(
+-+++        @Inject(ARTICLE_REPOSITORY)
+-+++        private readonly articleRepository: ArticleRepository
+-+++    ) {}
+-+++
+-+++    async execute(): Promise<Article[]> {
+-+++        return await this.articleRepository.findAll();
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/list-categories.use-case.ts b/src/modules/blog/application/use-cases/list-categories.use-case.ts
+-++new file mode 100644
+-++index 0000000..09d1483
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/list-categories.use-case.ts
+-++@@ -0,0 +1,15 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+++
+-+++@Injectable()
+-+++export class ListCategorieUsecase {
+-+++    constructor(
+-+++        @Inject(CATEGORIE_REPOSITORY)
+-+++        private readonly categorieRepository: CategorieRepository
+-+++    ) {}
+-+++
+-+++    async execute(): Promise<Categorie[]> {
+-+++        return this.categorieRepository.findAll();
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts b/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts
+-++new file mode 100644
+-++index 0000000..ac28753
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts
+-++@@ -0,0 +1,34 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+++import { Article } from "../../domain/entities/article.entity.js";
+-+++
+-+++export interface SwitchArticleInput {
+-+++    id: string;
+-+++    statut: StatutArticleType;
+-+++}
+-+++
+-+++@Injectable()
+-+++export class SwitchArticleStatut {
+-+++    constructor(
+-+++        @Inject(ARTICLE_REPOSITORY)
+-+++        private readonly articleRepository: ArticleRepository
+-+++    ) {}
+-+++
+-+++    async execute(input: SwitchArticleInput): Promise<Article> {
+-+++        const articleId = ArticleId.create(input.id);
+-+++        const article = await this.articleRepository.findById(articleId);
+-+++        
+-+++        if(!article) {
+-+++            throw new ArticleIntrouvableError(input.id);
+-+++        }
+-+++
+-+++        article.statut.transitionnerVers(input.statut);
+-+++
+-+++        this.articleRepository.save(article);
+-+++       
+-+++        return article;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/update-article.use-case.ts b/src/modules/blog/application/use-cases/update-article.use-case.ts
+-++new file mode 100644
+-++index 0000000..cddfdbd
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/update-article.use-case.ts
+-++@@ -0,0 +1,46 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+++import { StatutArticle, StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+++import { Article } from "../../domain/entities/article.entity.js";
+-+++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+++
+-+++export interface UpdateArticleInput {
+-+++    id: string;
+-+++    categorieId: string;
+-+++    nom: string;
+-+++    image: string | null;
+-+++    contenu: string;
+-+++    datePublication: Date | null;
+-+++}
+-+++
+-+++@Injectable()
+-+++export class UpdateArticleUseCase {
+-+++    constructor(
+-+++        @Inject(ARTICLE_REPOSITORY)
+-+++        private readonly articleRepository: ArticleRepository
+-+++    ) {}
+-+++
+-+++    async execute(input: UpdateArticleInput): Promise<Article> {
+-+++       
+-+++        const articleId = ArticleId.create(input.id);
+-+++        const article = await this.articleRepository.findById(articleId);
+-+++
+-+++        if(!article) {
+-+++            throw new ArticleIntrouvableError(input.id);
+-+++        }
+-+++
+-+++        article.update({
+-+++            categorieId : CategorieId.create(input.categorieId),
+-+++            nom: input.nom,
+-+++            image: input.image,
+-+++            contenu: input.contenu,
+-+++            datePublication: input.datePublication,
+-+++        })
+-+++
+-+++        await this.articleRepository.save(article);
+-+++
+-+++        return article;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/application/use-cases/update-categorie.use-case.ts b/src/modules/blog/application/use-cases/update-categorie.use-case.ts
+-++new file mode 100644
+-++index 0000000..9d5398a
+-++--- /dev/null
+-+++++ b/src/modules/blog/application/use-cases/update-categorie.use-case.ts
+-++@@ -0,0 +1,35 @@
+-+++import { Inject, Injectable } from "@nestjs/common";
+-+++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+++
+-+++export interface UpdateCategorieInput {
+-+++    id: string,
+-+++    nom: string
+-+++};
+-+++
+-+++@Injectable()
+-+++export class UpdateCategorieUseCase {
+-+++    constructor(
+-+++        @Inject(CATEGORIE_REPOSITORY)
+-+++        private readonly categoryRepository: CategorieRepository
+-+++    ) {}
+-+++
+-+++    async execute(input: UpdateCategorieInput): Promise<Categorie> {
+-+++        const categorie = await this.categoryRepository.findById(CategorieId.create(input.id));
+-+++        
+-+++        if(!categorie) {
+-+++            throw new CategorieIntrouvableError(input.id);
+-+++        }
+-+++
+-+++        categorie.update({
+-+++            nom: input.nom
+-+++        });
+-+++
+-+++        await this.categoryRepository.save(categorie);
+-+++
+-+++        return categorie;
+-+++        
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/domain/entities/article.entity.ts b/src/modules/blog/domain/entities/article.entity.ts
+-++index 790f3e5..13ef987 100644
+-++--- a/src/modules/blog/domain/entities/article.entity.ts
+-+++++ b/src/modules/blog/domain/entities/article.entity.ts
+-++@@ -14,7 +14,15 @@ export interface CreateArticleParams {
+-++   image: string | null;
+-++   contenu: string;
+-++   datePublication: Date | null;
+-++-  statut?: StatutArticle;
+-+++  statut: StatutArticle | null;
+-+++}
+-+++
+-+++export interface UpdateArticleParams {
+-+++  categorieId: CategorieId;
+-+++  nom: string;
+-+++  image: string | null;
+-+++  contenu: string;
+-+++  datePublication: Date | null;
+-++ }
+-++ 
+-++ export class Article {
+-++@@ -74,6 +82,14 @@ export class Article {
+-++     return this._statut;
+-++   }
+-++ 
+-+++  update(params: UpdateArticleParams): void {
+-+++    this._categorieId = params.categorieId;
+-+++    this._nom = params.nom;
+-+++    this._contenu = params.contenu;
+-+++    this._image = params.image;
+-+++    this._datePublication = params.datePublication
+-+++  }
+-+++
+-++   publier(): void {
+-++     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
+-++     this._datePublication = this._datePublication ?? new Date();
+-++diff --git a/src/modules/blog/domain/entities/categorie.entity.ts b/src/modules/blog/domain/entities/categorie.entity.ts
+-++index 989235f..fe39c0f 100644
+-++--- a/src/modules/blog/domain/entities/categorie.entity.ts
+-+++++ b/src/modules/blog/domain/entities/categorie.entity.ts
+-++@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
+-++   id: CategorieId;
+-++   slug: Slug;
+-++   nom: string;
+-++-}
+-+++};
+-+++
+-+++export interface UpdateCategorieParams {
+-+++  nom: string;
+-+++};
+-++ 
+-++ export class Categorie {
+-++   private constructor(
+-++@@ -29,4 +33,8 @@ export class Categorie {
+-++   get nom(): string {
+-++     return this._nom;
+-++   }
+-+++
+-+++  update(params: UpdateCategorieParams): void {
+-+++    this._nom = params.nom;
+-+++  }
+-++ }
+-++diff --git a/src/modules/blog/domain/errors/article-introuvable.error.ts b/src/modules/blog/domain/errors/article-introuvable.error.ts
+-++new file mode 100644
+-++index 0000000..fed05e9
+-++--- /dev/null
+-+++++ b/src/modules/blog/domain/errors/article-introuvable.error.ts
+-++@@ -0,0 +1,6 @@
+-+++export class ArticleIntrouvableError extends Error {
+-+++    constructor(identifiant: string) {
+-+++        super(`Expérience introuvable : "${identifiant}"`);
+-+++        this.name = "ArticleIntrouvableError";
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/domain/errors/categorie-introuvable.error.ts b/src/modules/blog/domain/errors/categorie-introuvable.error.ts
+-++new file mode 100644
+-++index 0000000..8c3604a
+-++--- /dev/null
+-+++++ b/src/modules/blog/domain/errors/categorie-introuvable.error.ts
+-++@@ -0,0 +1,6 @@
+-+++export class CategorieIntrouvableError extends Error {
+-+++    constructor(identifiant: string) {
+-+++      super(`Expérience introuvable : "${identifiant}"`);
+-+++      this.name = 'CategorieIntrouvableError';
+-+++    }
+-+++  }
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-++index 1eacf44..fdde28b 100644
+-++--- a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+++++ b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-++@@ -8,6 +8,10 @@ export class CategorieId {
+-++     return new CategorieId(value);
+-++   }
+-++ 
+-+++  static generate(): CategorieId {
+-+++    return new CategorieId(crypto.randomUUID()); 
+-+++  }
+-+++
+-++   toString(): string {
+-++     return this.value;
+-++   }
+-++diff --git a/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts b/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts
+-++new file mode 100644
+-++index 0000000..f77cb0b
+-++--- /dev/null
+-+++++ b/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts
+-++@@ -0,0 +1,17 @@
+-+++import { PrismaError } from "src/shared/infrastructure/prisma-error-interface.js";
+-+++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+++
+-+++export function handleForeignKeyConstraintViolation(error: unknown, id: string): void {
+-+++    const err = error as PrismaError;
+-+++    
+-+++    if (err.code !== 'P2003') {
+-+++        return;
+-+++    }
+-+++    
+-+++    const index = err.meta?.driverAdapterError?.cause?.constraint?.index ?? '';
+-+++    
+-+++    if (index === 'articles_categorie_id_fkey') {
+-+++        throw new CategorieIntrouvableError(id);
+-+++    }
+-+++      
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-++index ada692f..968440b 100644
+-++--- a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+++++ b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-++@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
+-++ import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+-++ import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+-++ import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+-+++import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
+-++ 
+-++ @Injectable()
+-++ export class PrismaArticleRepository implements ArticleRepository {
+-++@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
+-++       });
+-++     } catch (error)  {
+-++       handleUniqueConstraintError(error, data.slug);
+-+++      handleForeignKeyConstraintViolation(error, data.categorieId);
+-++       throw error;
+-++     }
+-++     
+-++diff --git a/src/modules/blog/presentation/controllers/article.controller.ts b/src/modules/blog/presentation/controllers/article.controller.ts
+-++new file mode 100644
+-++index 0000000..c938ff9
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/controllers/article.controller.ts
+-++@@ -0,0 +1,142 @@
+-+++import { BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
+-+++import { CreateArticleUseCase } from "../../application/use-cases/create-article.use-case.js";
+-+++import { UpdateArticleUseCase } from "../../application/use-cases/update-article.use-case.js";
+-+++import { ListArticleUseCase } from "../../application/use-cases/list-articles.use-case.js";
+-+++import { GetArticleBySlugUseCase } from "../../application/use-cases/get-article-by-slug.use-case.js";
+-+++import { DeleteArticleUseCase } from "../../application/use-cases/delete-article.use-case.js";
+-+++import { AuthGuard } from "src/modules/auth/auth.guard.js";
+-+++import { CreateArticleDto } from "../dtos/create-article.dto.js";
+-+++import { ArticleResponseDto } from "../dtos/article-response.dto.js";
+-+++import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
+-+++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+++import { UpdateArticleDto } from "../dtos/update-article.dto.js";
+-+++import { SwitchArticleStatut } from "../../application/use-cases/switch-article-statut.use-case.js";
+-+++import { SwitchArticleStatutDto } from "../dtos/switch-article-statut.dto.js";
+-+++import { TransitionStatutInvalideError } from "../../domain/errors/transition-statut-invalide.error.js";
+-+++import { GetArticlesByCategorie } from "../../application/use-cases/get-articles-by-categorie.use-case.js";
+-+++
+-+++@Controller('articles')
+-+++export class ArticleController {
+-+++    constructor(
+-+++        private readonly createArticleUseCase: CreateArticleUseCase,
+-+++        private readonly updateArticleUseCase: UpdateArticleUseCase,
+-+++        private readonly listArticleUseCase: ListArticleUseCase,
+-+++        private readonly getArticleBySlugUseCase: GetArticleBySlugUseCase,
+-+++        private readonly deleteArticleUseCase: DeleteArticleUseCase,
+-+++        private readonly switchArticleStatut: SwitchArticleStatut,
+-+++        private readonly getArticlesByCategorie: GetArticlesByCategorie
+-+++    ) {}
+-+++
+-+++    @Post()
+-+++    @UseGuards(AuthGuard)
+-+++    @HttpCode(HttpStatus.CREATED)
+-+++    async create(@Body()dto: CreateArticleDto): Promise<ArticleResponseDto> {
+-+++        try {
+-+++            const article = await this.createArticleUseCase.execute({
+-+++                slug: dto.slug,
+-+++                categorieId: dto.categoryId,
+-+++                nom: dto.nom,
+-+++                contenu: dto.contenu,
+-+++                image: dto.image ?? null,
+-+++                datePublication: dto.datePublication ?? null,
+-+++                statut: dto.statut ?? null
+-+++            });
+-+++
+-+++            return ArticleResponseDto.fromDomain(article);
+-+++        } catch(error) {
+-+++            if(error instanceof SlugDejaUtiliseError) {
+-+++                throw new ConflictException(error.message);
+-+++            }
+-+++            if(error instanceof CategorieIntrouvableError) {
+-+++                throw new BadRequestException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++    @Get('/categorie/:categorieId')
+-+++    async getByCategorie(@Param('categorieId')categorieId: string): Promise<ArticleResponseDto[]> {
+-+++        const rows = await this.getArticlesByCategorie.execute(categorieId);
+-+++
+-+++        return rows.map(ArticleResponseDto.fromDomain);
+-+++    }
+-+++
+-+++    @Get('/:slug') 
+-+++    async getBySlug(@Param('slug')slug: string): Promise<ArticleResponseDto> {
+-+++        try {
+-+++            const article = await this.getArticleBySlugUseCase.execute(slug);
+-+++            return ArticleResponseDto.fromDomain(article);
+-+++        } catch (error) {
+-+++            if(error instanceof ArticleIntrouvableError) {
+-+++                throw new NotFoundException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++    @Get()
+-+++    async list(): Promise<ArticleResponseDto[]> {
+-+++        const rows = await this.listArticleUseCase.execute();
+-+++        return  rows.map(ArticleResponseDto.fromDomain);
+-+++    }
+-+++
+-+++    @Put('/statut/:id')
+-+++    async switchStatut(@Param('id', ParseUUIDPipe)id: string, @Body()dto: SwitchArticleStatutDto): Promise<ArticleResponseDto> {
+-+++        try {
+-+++            const article = await this.switchArticleStatut.execute({
+-+++                id: id,
+-+++                statut: dto.statut
+-+++            });
+-+++
+-+++            return ArticleResponseDto.fromDomain(article);
+-+++        } catch(error) {
+-+++            if(error instanceof ArticleIntrouvableError) {
+-+++                throw new NotFoundException(error.message);
+-+++            }
+-+++
+-+++            if(error instanceof TransitionStatutInvalideError) {
+-+++                throw new BadRequestException(error.message);
+-+++            }
+-+++
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++    @Put('/:id')
+-+++    async update(@Param('id', ParseUUIDPipe)id: string, @Body()dto: UpdateArticleDto): Promise<ArticleResponseDto> {
+-+++        try {
+-+++            const article = await this.updateArticleUseCase.execute({
+-+++                id: id,
+-+++                categorieId: dto.categoryId,
+-+++                nom: dto.nom,
+-+++                contenu: dto.contenu,
+-+++                image: dto.image ?? null,
+-+++                datePublication: dto.datePublication ?? null
+-+++            });
+-+++
+-+++            return ArticleResponseDto.fromDomain(article);
+-+++        } catch(error) {
+-+++            if(error instanceof ArticleIntrouvableError) {
+-+++                throw new NotFoundException(error.message);
+-+++            }
+-+++            if(error instanceof CategorieIntrouvableError) {
+-+++                throw new BadRequestException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++    @Delete('/id')
+-+++    @UseGuards(AuthGuard)
+-+++    async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
+-+++        try {
+-+++            await this.deleteArticleUseCase.execute(id);
+-+++        } catch(error) {
+-+++            if(error instanceof ArticleIntrouvableError) {
+-+++                throw new NotFoundException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/controllers/categorie.controller.ts b/src/modules/blog/presentation/controllers/categorie.controller.ts
+-++new file mode 100644
+-++index 0000000..8963899
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/controllers/categorie.controller.ts
+-++@@ -0,0 +1,96 @@
+-+++import { Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
+-+++import { CreateCategorieUseCase } from "../../application/use-cases/create-categorie.use-case.js";
+-+++import { UpdateCategorieUseCase } from "../../application/use-cases/update-categorie.use-case.js";
+-+++import { GetCategorieBySlugUseCase } from "../../application/use-cases/get-categorie-by-slug.use-case.js";
+-+++import { ListCategorieUsecase } from "../../application/use-cases/list-categories.use-case.js";
+-+++import { DeleteCategorieUseCase } from "../../application/use-cases/delete-categorie.use-case.js";
+-+++import { AuthGuard } from "src/modules/auth/auth.guard.js";
+-+++import { CreateCategorieDto } from "../dtos/create-categorie.dto.js";
+-+++import { CategorieResourceDto } from "../dtos/categorie-response.dto.js";
+-+++import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
+-+++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+++import { UpdateCategorieDto } from "../dtos/update-categorie.dto.js";
+-+++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+++
+-+++@Controller('categories')
+-+++export class CategorieController {
+-+++    constructor(
+-+++        private readonly createCategorieUseCase: CreateCategorieUseCase,
+-+++        private readonly updateCategorieUseCase: UpdateCategorieUseCase,
+-+++        private readonly getCategorieBySlugUseCase: GetCategorieBySlugUseCase,
+-+++        private readonly listCategorieUsecase: ListCategorieUsecase,
+-+++        private readonly deleteCategorieUseCase: DeleteCategorieUseCase,
+-+++    ) {}
+-+++
+-+++    @Post()
+-+++    @HttpCode(HttpStatus.CREATED)
+-+++    @UseGuards(AuthGuard)
+-+++    async create(@Body()dto: CreateCategorieDto): Promise<CategorieResourceDto> {
+-+++        try {
+-+++            const categorie = await this.createCategorieUseCase.execute({
+-+++                slug: dto.slug,
+-+++                nom: dto.nom
+-+++            });
+-+++
+-+++            return CategorieResourceDto.fromDomain(categorie);
+-+++        } catch(error) {
+-+++            if(error instanceof SlugDejaUtiliseError) {
+-+++                throw new ConflictException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++    @Get('/:slug')
+-+++    async getBySlug(@Param('slug')slug: string): Promise<CategorieResourceDto> {
+-+++        try {
+-+++            const raw = await this.getCategorieBySlugUseCase.execute(slug);
+-+++            return CategorieResourceDto.fromDomain(raw);
+-+++        } catch(error) {
+-+++            if(error instanceof CategorieIntrouvableError) {
+-+++                throw new NotFoundException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++    @Get()
+-+++    async list(): Promise<CategorieResourceDto[]> {
+-+++        const rows = await this.listCategorieUsecase.execute();
+-+++        return rows.map(CategorieResourceDto.fromDomain);
+-+++    }
+-+++
+-+++    @Put('/id')
+-+++    @UseGuards(AuthGuard)
+-+++    async update(@Param('id', ParseUUIDPipe)id: string, @Body()dto: UpdateCategorieDto): Promise<CategorieResourceDto> {
+-+++        try {
+-+++            const categorie = await this.updateCategorieUseCase.execute({
+-+++                id: id,
+-+++                nom: dto.nom
+-+++            });
+-+++
+-+++            return CategorieResourceDto.fromDomain(categorie);
+-+++        } catch(error) {
+-+++            if(error instanceof CategorieIntrouvableError) {
+-+++                throw new NotFoundException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++    @Delete('/:id')
+-+++    @UseGuards(AuthGuard)
+-+++    @HttpCode(HttpStatus.NO_CONTENT)
+-+++    async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
+-+++        try {
+-+++            await this.deleteCategorieUseCase.execute(id);
+-+++        } catch(error) {
+-+++            if(error instanceof CategorieIntrouvableError) {
+-+++                throw new NotFoundException(error.message);
+-+++            }
+-+++            throw error;
+-+++        }
+-+++    }
+-+++
+-+++   
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/dtos/article-response.dto.ts b/src/modules/blog/presentation/dtos/article-response.dto.ts
+-++new file mode 100644
+-++index 0000000..380011d
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/dtos/article-response.dto.ts
+-++@@ -0,0 +1,27 @@
+-+++import { Article } from "../../domain/entities/article.entity.js";
+-+++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+++
+-+++export class ArticleResponseDto {
+-+++    id!: string;
+-+++    slug!: string;
+-+++    categorieId!: string;
+-+++    nom!: string;
+-+++    contenu!: string;
+-+++    image?: string | null;
+-+++    datePublication?: Date | null;
+-+++    statut!: StatutArticleType;
+-+++
+-+++    static fromDomain(article: Article): ArticleResponseDto {
+-+++        const dto = new ArticleResponseDto();
+-+++        dto.id = article.id.toString();
+-+++        dto.slug = article.slug.toString();
+-+++        dto.categorieId = article.categorieId.toString();
+-+++        dto.nom = article.nom;
+-+++        dto.contenu = article.contenu;
+-+++        dto.image = article.image;
+-+++        dto.datePublication = article.datePublication;
+-+++        dto.statut = article.statut.value;
+-+++
+-+++        return dto;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/dtos/categorie-response.dto.ts b/src/modules/blog/presentation/dtos/categorie-response.dto.ts
+-++new file mode 100644
+-++index 0000000..8569fb4
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/dtos/categorie-response.dto.ts
+-++@@ -0,0 +1,16 @@
+-+++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+++
+-+++export class CategorieResourceDto {
+-+++    id!: string;
+-+++    slug!: string;
+-+++    nom!: string;
+-+++
+-+++    static fromDomain(categorie: Categorie): CategorieResourceDto {
+-+++        const dto = new CategorieResourceDto();
+-+++        dto.id = categorie.id.toString();
+-+++        dto.slug = categorie.slug.toString();
+-+++        dto.nom = categorie.nom;
+-+++
+-+++        return dto;
+-+++    }
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/dtos/create-article.dto.ts b/src/modules/blog/presentation/dtos/create-article.dto.ts
+-++new file mode 100644
+-++index 0000000..9fca954
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/dtos/create-article.dto.ts
+-++@@ -0,0 +1,32 @@
+-+++import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+-+++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+++
+-+++export class CreateArticleDto {
+-+++    @IsNotEmpty()
+-+++    @IsString()
+-+++    slug!: string;
+-+++
+-+++    @IsNotEmpty()
+-+++    @IsString()
+-+++    categoryId!: string;
+-+++
+-+++    @IsNotEmpty()
+-+++    @IsString()
+-+++    nom!: string;
+-+++
+-+++    @IsNotEmpty()
+-+++    @IsString()
+-+++    contenu: string;
+-+++
+-+++    @IsOptional()
+-+++    @IsString()
+-+++    image?: string;
+-+++
+-+++    @IsOptional()
+-+++    @IsDateString()
+-+++    datePublication?: Date;
+-+++
+-+++    @IsOptional()
+-+++    @IsEnum(StatutArticleType)
+-+++    statut?: StatutArticleType;
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/dtos/create-categorie.dto.ts b/src/modules/blog/presentation/dtos/create-categorie.dto.ts
+-++new file mode 100644
+-++index 0000000..a506b2a
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/dtos/create-categorie.dto.ts
+-++@@ -0,0 +1,11 @@
+-+++import { IsNotEmpty, IsString } from "class-validator";
+-+++
+-+++export class CreateCategorieDto {
+-+++    @IsString()
+-+++    @IsNotEmpty()
+-+++    slug!: string;
+-+++
+-+++    @IsString()
+-+++    @IsNotEmpty()
+-+++    nom!: string;
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts b/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts
+-++new file mode 100644
+-++index 0000000..bfc989a
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts
+-++@@ -0,0 +1,8 @@
+-+++import { IsEnum, IsNotEmpty } from "class-validator";
+-+++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+++
+-+++export class SwitchArticleStatutDto {
+-+++    @IsNotEmpty()
+-+++    @IsEnum(StatutArticleType)
+-+++    statut!: StatutArticleType;
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/dtos/update-article.dto.ts b/src/modules/blog/presentation/dtos/update-article.dto.ts
+-++new file mode 100644
+-++index 0000000..d5729f5
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/dtos/update-article.dto.ts
+-++@@ -0,0 +1,28 @@
+-+++import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+-+++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+++
+-+++export class UpdateArticleDto {
+-+++    @IsNotEmpty()
+-+++    @IsString()
+-+++    categoryId!: string;
+-+++
+-+++    @IsNotEmpty()
+-+++    @IsString()
+-+++    nom!: string;
+-+++
+-+++    @IsNotEmpty()
+-+++    @IsString()
+-+++    contenu: string;
+-+++
+-+++    @IsOptional()
+-+++    @IsString()
+-+++    image?: string;
+-+++
+-+++    @IsOptional()
+-+++    @IsDateString()
+-+++    datePublication?: Date;
+-+++
+-+++    @IsOptional()
+-+++    @IsEnum(StatutArticleType)
+-+++    statut: StatutArticleType;
+-+++}
+-++\ No newline at end of file
+-++diff --git a/src/modules/blog/presentation/dtos/update-categorie.dto.ts b/src/modules/blog/presentation/dtos/update-categorie.dto.ts
+-++new file mode 100644
+-++index 0000000..27944f4
+-++--- /dev/null
+-+++++ b/src/modules/blog/presentation/dtos/update-categorie.dto.ts
+-++@@ -0,0 +1,7 @@
+-+++import { IsNotEmpty, IsString } from "class-validator";
+-+++
+-+++export class UpdateCategorieDto {
+-+++    @IsString()
+-+++    @IsNotEmpty()
+-+++    nom!: string;
+-+++}
+-++\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/create-article.use-case.ts b/src/modules/blog/application/use-cases/create-article.use-case.ts
+-+new file mode 100644
+-+index 0000000..103a937
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/create-article.use-case.ts
+-+@@ -0,0 +1,42 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-++import { StatutArticle, StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-++import { Article } from "../../domain/entities/article.entity.js";
+-++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-++
+-++export interface CreateArticleInput {
+-++    slug: string;
+-++    categorieId: string;
+-++    nom: string;
+-++    image: string | null;
+-++    contenu: string;
+-++    datePublication: Date | null;
+-++    statut: StatutArticleType | null;
+-++}
+-++
+-++@Injectable()
+-++export class CreateArticleUseCase {
+-++    constructor(
+-++        @Inject(ARTICLE_REPOSITORY)
+-++        private readonly articleRepository: ArticleRepository
+-++    ) {}
+-++
+-++    async execute(input: CreateArticleInput): Promise<Article> {
+-++        const article = Article.create({
+-++            id: ArticleId.generate(),
+-++            slug: Slug.create(input.slug),
+-++            categorieId: CategorieId.create(input.categorieId),
+-++            nom: input.nom,
+-++            image: input.image,
+-++            contenu: input.contenu,
+-++            datePublication: input.datePublication,
+-++            statut: input.statut ? StatutArticle.create(input.statut) : null
+-++        });
+-++
+-++        await this.articleRepository.save(article);
+-++
+-++        return article;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/create-categorie.use-case.ts b/src/modules/blog/application/use-cases/create-categorie.use-case.ts
+-+new file mode 100644
+-+index 0000000..f23143d
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/create-categorie.use-case.ts
+-+@@ -0,0 +1,28 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-++
+-++export interface CreateCategorieInput {
+-++    slug: string;
+-++    nom: string;
+-++};
+-++
+-++@Injectable()
+-++export class CreateCategorieUseCase {
+-++    constructor (
+-++        @Inject(CATEGORIE_REPOSITORY)
+-++        private readonly categorieRepository: CategorieRepository
+-++    ) {}
+-++
+-++    async execute(input: CreateCategorieInput): Promise<Categorie> {
+-++        const category = Categorie.create({
+-++            id: CategorieId.generate(),
+-++            slug: Slug.create(input.slug),
+-++            nom: input.nom
+-++        });
+-++        await this.categorieRepository.save(category);
+-++        return category;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/delete-article.use-case.ts b/src/modules/blog/application/use-cases/delete-article.use-case.ts
+-+new file mode 100644
+-+index 0000000..40b3543
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/delete-article.use-case.ts
+-+@@ -0,0 +1,21 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-++
+-++@Injectable()
+-++export class DeleteArticleUseCase {
+-++    constructor(
+-++        @Inject(ARTICLE_REPOSITORY)
+-++        private readonly articleRepository: ArticleRepository
+-++    ) {}
+-++
+-++    async execute(id: string): Promise<void> {
+-++        const articleId = ArticleId.create(id);
+-++        const article = await this.articleRepository.findById(articleId);
+-++        if(!article) {
+-++            throw new ArticleIntrouvableError(id);
+-++        }
+-++        await this.articleRepository.delete(articleId);
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/delete-categorie.use-case.ts b/src/modules/blog/application/use-cases/delete-categorie.use-case.ts
+-+new file mode 100644
+-+index 0000000..a6bb7c7
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/delete-categorie.use-case.ts
+-+@@ -0,0 +1,23 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-++
+-++@Injectable()
+-++export class DeleteCategorieUseCase {
+-++    constructor(
+-++        @Inject(CATEGORIE_REPOSITORY)
+-++        private readonly categorieRepository: CategorieRepository
+-++    ) {}
+-++
+-++    async execute(id: string): Promise<void> {
+-++        const categorieId = CategorieId.create(id);
+-++        const categorie = await this.categorieRepository.findById(categorieId);
+-++
+-++        if(!categorie) {
+-++            throw new CategorieIntrouvableError(id);
+-++        }
+-++        
+-++        await this.categorieRepository.delete(categorieId);
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts b/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts
+-+new file mode 100644
+-+index 0000000..c939ead
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts
+-+@@ -0,0 +1,24 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-++import { Article } from "../../domain/entities/article.entity.js";
+-++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-++
+-++@Injectable()
+-++export class GetArticleBySlugUseCase {
+-++    constructor(
+-++        @Inject(ARTICLE_REPOSITORY)
+-++        private readonly articleRepository: ArticleRepository
+-++    ) {}
+-++
+-++    async execute(slug: string): Promise<Article> {
+-++       
+-++        const article = await this.articleRepository.findBySlug(Slug.create(slug));
+-++
+-++        if(!article) {
+-++            throw new ArticleIntrouvableError(slug);
+-++        }
+-++        
+-++        return article;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts b/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts
+-+new file mode 100644
+-+index 0000000..1ae7ddf
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts
+-+@@ -0,0 +1,16 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-++import { Article } from "../../domain/entities/article.entity.js";
+-++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-++
+-++@Injectable()
+-++export class GetArticlesByCategorieUseCase {
+-++    constructor(
+-++        @Inject(ARTICLE_REPOSITORY)
+-++        private readonly articleRepository: ArticleRepository
+-++    ) {}
+-++
+-++    async execute(categorieId: string): Promise<Article[]> {
+-++        return await this.articleRepository.findByCategorie(CategorieId.create(categorieId));
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts b/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts
+-+new file mode 100644
+-+index 0000000..c5279e6
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts
+-+@@ -0,0 +1,23 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-++import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-++
+-++@Injectable()
+-++export class GetCategorieBySlugUseCase {
+-++    constructor(
+-++        @Inject(CATEGORIE_REPOSITORY)
+-++        private readonly categorieRepository: CategorieRepository
+-++    ) {}
+-++
+-++    async execute(slug: string): Promise<Categorie> {
+-++        const categorie = await this.categorieRepository.findBySlug(Slug.create(slug));
+-++
+-++        if(!categorie) {
+-++            throw new CategorieIntrouvableError(slug);
+-++        }
+-++
+-++        return categorie;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/list-articles.use-case.ts b/src/modules/blog/application/use-cases/list-articles.use-case.ts
+-+new file mode 100644
+-+index 0000000..4c1a358
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/list-articles.use-case.ts
+-+@@ -0,0 +1,15 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-++import { Article } from "../../domain/entities/article.entity.js";
+-++
+-++@Injectable()
+-++export class ListArticleUseCase {
+-++    constructor(
+-++        @Inject(ARTICLE_REPOSITORY)
+-++        private readonly articleRepository: ArticleRepository
+-++    ) {}
+-++
+-++    async execute(): Promise<Article[]> {
+-++        return await this.articleRepository.findAll();
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/list-categories.use-case.ts b/src/modules/blog/application/use-cases/list-categories.use-case.ts
+-+new file mode 100644
+-+index 0000000..addd959
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/list-categories.use-case.ts
+-+@@ -0,0 +1,15 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-++
+-++@Injectable()
+-++export class ListCategorieUseCase {
+-++    constructor(
+-++        @Inject(CATEGORIE_REPOSITORY)
+-++        private readonly categorieRepository: CategorieRepository
+-++    ) {}
+-++
+-++    async execute(): Promise<Categorie[]> {
+-++        return this.categorieRepository.findAll();
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts b/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts
+-+new file mode 100644
+-+index 0000000..03a454a
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts
+-+@@ -0,0 +1,34 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-++import { Article } from "../../domain/entities/article.entity.js";
+-++
+-++export interface SwitchArticleInput {
+-++    id: string;
+-++    statut: StatutArticleType;
+-++}
+-++
+-++@Injectable()
+-++export class SwitchArticleStatutUseCase {
+-++    constructor(
+-++        @Inject(ARTICLE_REPOSITORY)
+-++        private readonly articleRepository: ArticleRepository
+-++    ) {}
+-++
+-++    async execute(input: SwitchArticleInput): Promise<Article> {
+-++        const articleId = ArticleId.create(input.id);
+-++        const article = await this.articleRepository.findById(articleId);
+-++        
+-++        if(!article) {
+-++            throw new ArticleIntrouvableError(input.id);
+-++        }
+-++
+-++        article.changerStatut(input.statut);
+-++
+-++        await this.articleRepository.save(article);
+-++       
+-++        return article;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/update-article.use-case.ts b/src/modules/blog/application/use-cases/update-article.use-case.ts
+-+new file mode 100644
+-+index 0000000..cddfdbd
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/update-article.use-case.ts
+-+@@ -0,0 +1,46 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-++import { StatutArticle, StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-++import { Article } from "../../domain/entities/article.entity.js";
+-++import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-++
+-++export interface UpdateArticleInput {
+-++    id: string;
+-++    categorieId: string;
+-++    nom: string;
+-++    image: string | null;
+-++    contenu: string;
+-++    datePublication: Date | null;
+-++}
+-++
+-++@Injectable()
+-++export class UpdateArticleUseCase {
+-++    constructor(
+-++        @Inject(ARTICLE_REPOSITORY)
+-++        private readonly articleRepository: ArticleRepository
+-++    ) {}
+-++
+-++    async execute(input: UpdateArticleInput): Promise<Article> {
+-++       
+-++        const articleId = ArticleId.create(input.id);
+-++        const article = await this.articleRepository.findById(articleId);
+-++
+-++        if(!article) {
+-++            throw new ArticleIntrouvableError(input.id);
+-++        }
+-++
+-++        article.update({
+-++            categorieId : CategorieId.create(input.categorieId),
+-++            nom: input.nom,
+-++            image: input.image,
+-++            contenu: input.contenu,
+-++            datePublication: input.datePublication,
+-++        })
+-++
+-++        await this.articleRepository.save(article);
+-++
+-++        return article;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/application/use-cases/update-categorie.use-case.ts b/src/modules/blog/application/use-cases/update-categorie.use-case.ts
+-+new file mode 100644
+-+index 0000000..9d5398a
+-+--- /dev/null
+-++++ b/src/modules/blog/application/use-cases/update-categorie.use-case.ts
+-+@@ -0,0 +1,35 @@
+-++import { Inject, Injectable } from "@nestjs/common";
+-++import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-++import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-++
+-++export interface UpdateCategorieInput {
+-++    id: string,
+-++    nom: string
+-++};
+-++
+-++@Injectable()
+-++export class UpdateCategorieUseCase {
+-++    constructor(
+-++        @Inject(CATEGORIE_REPOSITORY)
+-++        private readonly categoryRepository: CategorieRepository
+-++    ) {}
+-++
+-++    async execute(input: UpdateCategorieInput): Promise<Categorie> {
+-++        const categorie = await this.categoryRepository.findById(CategorieId.create(input.id));
+-++        
+-++        if(!categorie) {
+-++            throw new CategorieIntrouvableError(input.id);
+-++        }
+-++
+-++        categorie.update({
+-++            nom: input.nom
+-++        });
+-++
+-++        await this.categoryRepository.save(categorie);
+-++
+-++        return categorie;
+-++        
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/domain/entities/article.entity.ts b/src/modules/blog/domain/entities/article.entity.ts
+-+index 790f3e5..2fae32a 100644
+-+--- a/src/modules/blog/domain/entities/article.entity.ts
+-++++ b/src/modules/blog/domain/entities/article.entity.ts
+-+@@ -14,7 +14,15 @@ export interface CreateArticleParams {
+-+   image: string | null;
+-+   contenu: string;
+-+   datePublication: Date | null;
+-+-  statut?: StatutArticle;
+-++  statut: StatutArticle | null;
+-++}
+-++
+-++export interface UpdateArticleParams {
+-++  categorieId: CategorieId;
+-++  nom: string;
+-++  image: string | null;
+-++  contenu: string;
+-++  datePublication: Date | null;
+-+ }
+-+ 
+-+ export class Article {
+-+@@ -74,6 +82,14 @@ export class Article {
+-+     return this._statut;
+-+   }
+-+ 
+-++  update(params: UpdateArticleParams): void {
+-++    this._categorieId = params.categorieId;
+-++    this._nom = params.nom;
+-++    this._contenu = params.contenu;
+-++    this._image = params.image;
+-++    this._datePublication = params.datePublication
+-++  }
+-++
+-+   publier(): void {
+-+     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
+-+     this._datePublication = this._datePublication ?? new Date();
+-+@@ -82,4 +98,8 @@ export class Article {
+-+   desactiver(): void {
+-+     this._statut = this._statut.transitionnerVers(StatutArticleType.INACTIF);
+-+   }
+-++
+-++  changerStatut(cible: StatutArticleType): void {
+-++    this._statut = this._statut.transitionnerVers(cible);
+-++  }
+-+ }
+-+diff --git a/src/modules/blog/domain/entities/categorie.entity.ts b/src/modules/blog/domain/entities/categorie.entity.ts
+-+index 989235f..fe39c0f 100644
+-+--- a/src/modules/blog/domain/entities/categorie.entity.ts
+-++++ b/src/modules/blog/domain/entities/categorie.entity.ts
+-+@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
+-+   id: CategorieId;
+-+   slug: Slug;
+-+   nom: string;
+-+-}
+-++};
+-++
+-++export interface UpdateCategorieParams {
+-++  nom: string;
+-++};
+-+ 
+-+ export class Categorie {
+-+   private constructor(
+-+@@ -29,4 +33,8 @@ export class Categorie {
+-+   get nom(): string {
+-+     return this._nom;
+-+   }
+-++
+-++  update(params: UpdateCategorieParams): void {
+-++    this._nom = params.nom;
+-++  }
+-+ }
+-+diff --git a/src/modules/blog/domain/errors/article-introuvable.error.ts b/src/modules/blog/domain/errors/article-introuvable.error.ts
+-+new file mode 100644
+-+index 0000000..ca3155e
+-+--- /dev/null
+-++++ b/src/modules/blog/domain/errors/article-introuvable.error.ts
+-+@@ -0,0 +1,6 @@
+-++export class ArticleIntrouvableError extends Error {
+-++    constructor(identifiant: string) {
+-++        super(`Article introuvable : "${identifiant}"`);
+-++        this.name = "ArticleIntrouvableError";
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/domain/errors/categorie-introuvable.error.ts b/src/modules/blog/domain/errors/categorie-introuvable.error.ts
+-+new file mode 100644
+-+index 0000000..714e814
+-+--- /dev/null
+-++++ b/src/modules/blog/domain/errors/categorie-introuvable.error.ts
+-+@@ -0,0 +1,6 @@
+-++export class CategorieIntrouvableError extends Error {
+-++    constructor(identifiant: string) {
+-++      super(`Catégorie introuvable : "${identifiant}"`);
+-++      this.name = 'CategorieIntrouvableError';
+-++    }
+-++  }
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+index 1eacf44..fdde28b 100644
+-+--- a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-++++ b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+@@ -8,6 +8,10 @@ export class CategorieId {
+-+     return new CategorieId(value);
+-+   }
+-+ 
+-++  static generate(): CategorieId {
+-++    return new CategorieId(crypto.randomUUID()); 
+-++  }
+-++
+-+   toString(): string {
+-+     return this.value;
+-+   }
+-+diff --git a/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts b/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts
+-+new file mode 100644
+-+index 0000000..f77cb0b
+-+--- /dev/null
+-++++ b/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts
+-+@@ -0,0 +1,17 @@
+-++import { PrismaError } from "src/shared/infrastructure/prisma-error-interface.js";
+-++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-++
+-++export function handleForeignKeyConstraintViolation(error: unknown, id: string): void {
+-++    const err = error as PrismaError;
+-++    
+-++    if (err.code !== 'P2003') {
+-++        return;
+-++    }
+-++    
+-++    const index = err.meta?.driverAdapterError?.cause?.constraint?.index ?? '';
+-++    
+-++    if (index === 'articles_categorie_id_fkey') {
+-++        throw new CategorieIntrouvableError(id);
+-++    }
+-++      
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+index ada692f..968440b 100644
+-+--- a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-++++ b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
+-+ import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+-+ import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+-+ import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+-++import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
+-+ 
+-+ @Injectable()
+-+ export class PrismaArticleRepository implements ArticleRepository {
+-+@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
+-+       });
+-+     } catch (error)  {
+-+       handleUniqueConstraintError(error, data.slug);
+-++      handleForeignKeyConstraintViolation(error, data.categorieId);
+-+       throw error;
+-+     }
+-+     
+-+diff --git a/src/modules/blog/presentation/controllers/article.controller.ts b/src/modules/blog/presentation/controllers/article.controller.ts
+-+new file mode 100644
+-+index 0000000..523a433
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/controllers/article.controller.ts
+-+@@ -0,0 +1,144 @@
+-++import { BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
+-++import { CreateArticleUseCase } from "../../application/use-cases/create-article.use-case.js";
+-++import { UpdateArticleUseCase } from "../../application/use-cases/update-article.use-case.js";
+-++import { ListArticleUseCase } from "../../application/use-cases/list-articles.use-case.js";
+-++import { GetArticleBySlugUseCase } from "../../application/use-cases/get-article-by-slug.use-case.js";
+-++import { DeleteArticleUseCase } from "../../application/use-cases/delete-article.use-case.js";
+-++import { AuthGuard } from "src/modules/auth/auth.guard.js";
+-++import { CreateArticleDto } from "../dtos/create-article.dto.js";
+-++import { ArticleResponseDto } from "../dtos/article-response.dto.js";
+-++import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
+-++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-++import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-++import { UpdateArticleDto } from "../dtos/update-article.dto.js";
+-++import { SwitchArticleStatutUseCase } from "../../application/use-cases/switch-article-statut.use-case.js";
+-++import { SwitchArticleStatutDto } from "../dtos/switch-article-statut.dto.js";
+-++import { TransitionStatutInvalideError } from "../../domain/errors/transition-statut-invalide.error.js";
+-++import { GetArticlesByCategorieUseCase } from "../../application/use-cases/get-articles-by-categorie.use-case.js";
+-++
+-++@Controller('articles')
+-++export class ArticleController {
+-++    constructor(
+-++        private readonly createArticleUseCase: CreateArticleUseCase,
+-++        private readonly updateArticleUseCase: UpdateArticleUseCase,
+-++        private readonly listArticleUseCase: ListArticleUseCase,
+-++        private readonly getArticleBySlugUseCase: GetArticleBySlugUseCase,
+-++        private readonly deleteArticleUseCase: DeleteArticleUseCase,
+-++        private readonly switchArticleStatutUseCase: SwitchArticleStatutUseCase,
+-++        private readonly getArticlesByCategorieUseCase: GetArticlesByCategorieUseCase
+-++    ) {}
+-++
+-++    @Post()
+-++    @UseGuards(AuthGuard)
+-++    @HttpCode(HttpStatus.CREATED)
+-++    async create(@Body()dto: CreateArticleDto): Promise<ArticleResponseDto> {
+-++        try {
+-++            const article = await this.createArticleUseCase.execute({
+-++                slug: dto.slug,
+-++                categorieId: dto.categoryId,
+-++                nom: dto.nom,
+-++                contenu: dto.contenu,
+-++                image: dto.image ?? null,
+-++                datePublication: dto.datePublication ? new Date(dto.datePublication) : null,
+-++                statut: dto.statut ?? null
+-++            });
+-++
+-++            return ArticleResponseDto.fromDomain(article);
+-++        } catch(error) {
+-++            if(error instanceof SlugDejaUtiliseError) {
+-++                throw new ConflictException(error.message);
+-++            }
+-++            if(error instanceof CategorieIntrouvableError) {
+-++                throw new BadRequestException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++
+-++    @Get('/categorie/:categorieId')
+-++    async getByCategorie(@Param('categorieId')categorieId: string): Promise<ArticleResponseDto[]> {
+-++        const rows = await this.getArticlesByCategorieUseCase.execute(categorieId);
+-++
+-++        return rows.map(ArticleResponseDto.fromDomain);
+-++    }
+-++
+-++    @Get('/:slug') 
+-++    async getBySlug(@Param('slug')slug: string): Promise<ArticleResponseDto> {
+-++        try {
+-++            const article = await this.getArticleBySlugUseCase.execute(slug);
+-++            return ArticleResponseDto.fromDomain(article);
+-++        } catch (error) {
+-++            if(error instanceof ArticleIntrouvableError) {
+-++                throw new NotFoundException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++
+-++    @Get()
+-++    async list(): Promise<ArticleResponseDto[]> {
+-++        const rows = await this.listArticleUseCase.execute();
+-++        return  rows.map(ArticleResponseDto.fromDomain);
+-++    }
+-++
+-++    @Put('/statut/:id')
+-++    @UseGuards(AuthGuard)
+-++    async switchStatut(@Param('id', ParseUUIDPipe)id: string, @Body()dto: SwitchArticleStatutDto): Promise<ArticleResponseDto> {
+-++        try {
+-++            const article = await this.switchArticleStatutUseCase.execute({
+-++                id: id,
+-++                statut: dto.statut
+-++            });
+-++
+-++            return ArticleResponseDto.fromDomain(article);
+-++        } catch(error) {
+-++            if(error instanceof ArticleIntrouvableError) {
+-++                throw new NotFoundException(error.message);
+-++            }
+-++
+-++            if(error instanceof TransitionStatutInvalideError) {
+-++                throw new BadRequestException(error.message);
+-++            }
+-++
+-++            throw error;
+-++        }
+-++    }
+-++
+-++    @Put('/:id')
+-++    @UseGuards(AuthGuard)
+-++    async update(@Param('id', ParseUUIDPipe)id: string, @Body()dto: UpdateArticleDto): Promise<ArticleResponseDto> {
+-++        try {
+-++            const article = await this.updateArticleUseCase.execute({
+-++                id: id,
+-++                categorieId: dto.categoryId,
+-++                nom: dto.nom,
+-++                contenu: dto.contenu,
+-++                image: dto.image ?? null,
+-++                datePublication: dto.datePublication ? new Date(dto.datePublication) : null
+-++            });
+-++
+-++            return ArticleResponseDto.fromDomain(article);
+-++        } catch(error) {
+-++            if(error instanceof ArticleIntrouvableError) {
+-++                throw new NotFoundException(error.message);
+-++            }
+-++            if(error instanceof CategorieIntrouvableError) {
+-++                throw new BadRequestException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++
+-++    @Delete('/:id')
+-++    @UseGuards(AuthGuard)
+-++    async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
+-++        try {
+-++            await this.deleteArticleUseCase.execute(id);
+-++        } catch(error) {
+-++            if(error instanceof ArticleIntrouvableError) {
+-++                throw new NotFoundException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/controllers/categorie.controller.ts b/src/modules/blog/presentation/controllers/categorie.controller.ts
+-+new file mode 100644
+-+index 0000000..66fd16c
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/controllers/categorie.controller.ts
+-+@@ -0,0 +1,96 @@
+-++import { Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
+-++import { CreateCategorieUseCase } from "../../application/use-cases/create-categorie.use-case.js";
+-++import { UpdateCategorieUseCase } from "../../application/use-cases/update-categorie.use-case.js";
+-++import { GetCategorieBySlugUseCase } from "../../application/use-cases/get-categorie-by-slug.use-case.js";
+-++import { ListCategorieUseCase } from "../../application/use-cases/list-categories.use-case.js";
+-++import { DeleteCategorieUseCase } from "../../application/use-cases/delete-categorie.use-case.js";
+-++import { AuthGuard } from "src/modules/auth/auth.guard.js";
+-++import { CreateCategorieDto } from "../dtos/create-categorie.dto.js";
+-++import { CategorieResourceDto } from "../dtos/categorie-response.dto.js";
+-++import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
+-++import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-++import { UpdateCategorieDto } from "../dtos/update-categorie.dto.js";
+-++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-++
+-++@Controller('categories')
+-++export class CategorieController {
+-++    constructor(
+-++        private readonly createCategorieUseCase: CreateCategorieUseCase,
+-++        private readonly updateCategorieUseCase: UpdateCategorieUseCase,
+-++        private readonly getCategorieBySlugUseCase: GetCategorieBySlugUseCase,
+-++        private readonly listCategorieUsecase: ListCategorieUseCase,
+-++        private readonly deleteCategorieUseCase: DeleteCategorieUseCase,
+-++    ) {}
+-++
+-++    @Post()
+-++    @HttpCode(HttpStatus.CREATED)
+-++    @UseGuards(AuthGuard)
+-++    async create(@Body()dto: CreateCategorieDto): Promise<CategorieResourceDto> {
+-++        try {
+-++            const categorie = await this.createCategorieUseCase.execute({
+-++                slug: dto.slug,
+-++                nom: dto.nom
+-++            });
+-++
+-++            return CategorieResourceDto.fromDomain(categorie);
+-++        } catch(error) {
+-++            if(error instanceof SlugDejaUtiliseError) {
+-++                throw new ConflictException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++
+-++    @Get('/:slug')
+-++    async getBySlug(@Param('slug')slug: string): Promise<CategorieResourceDto> {
+-++        try {
+-++            const raw = await this.getCategorieBySlugUseCase.execute(slug);
+-++            return CategorieResourceDto.fromDomain(raw);
+-++        } catch(error) {
+-++            if(error instanceof CategorieIntrouvableError) {
+-++                throw new NotFoundException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++
+-++    @Get()
+-++    async list(): Promise<CategorieResourceDto[]> {
+-++        const rows = await this.listCategorieUsecase.execute();
+-++        return rows.map(CategorieResourceDto.fromDomain);
+-++    }
+-++
+-++    @Put('/:id')
+-++    @UseGuards(AuthGuard)
+-++    async update(@Param('id', ParseUUIDPipe)id: string, @Body()dto: UpdateCategorieDto): Promise<CategorieResourceDto> {
+-++        try {
+-++            const categorie = await this.updateCategorieUseCase.execute({
+-++                id: id,
+-++                nom: dto.nom
+-++            });
+-++
+-++            return CategorieResourceDto.fromDomain(categorie);
+-++        } catch(error) {
+-++            if(error instanceof CategorieIntrouvableError) {
+-++                throw new NotFoundException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++
+-++    @Delete('/:id')
+-++    @UseGuards(AuthGuard)
+-++    @HttpCode(HttpStatus.NO_CONTENT)
+-++    async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
+-++        try {
+-++            await this.deleteCategorieUseCase.execute(id);
+-++        } catch(error) {
+-++            if(error instanceof CategorieIntrouvableError) {
+-++                throw new NotFoundException(error.message);
+-++            }
+-++            throw error;
+-++        }
+-++    }
+-++
+-++   
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/dtos/article-response.dto.ts b/src/modules/blog/presentation/dtos/article-response.dto.ts
+-+new file mode 100644
+-+index 0000000..380011d
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/dtos/article-response.dto.ts
+-+@@ -0,0 +1,27 @@
+-++import { Article } from "../../domain/entities/article.entity.js";
+-++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-++
+-++export class ArticleResponseDto {
+-++    id!: string;
+-++    slug!: string;
+-++    categorieId!: string;
+-++    nom!: string;
+-++    contenu!: string;
+-++    image?: string | null;
+-++    datePublication?: Date | null;
+-++    statut!: StatutArticleType;
+-++
+-++    static fromDomain(article: Article): ArticleResponseDto {
+-++        const dto = new ArticleResponseDto();
+-++        dto.id = article.id.toString();
+-++        dto.slug = article.slug.toString();
+-++        dto.categorieId = article.categorieId.toString();
+-++        dto.nom = article.nom;
+-++        dto.contenu = article.contenu;
+-++        dto.image = article.image;
+-++        dto.datePublication = article.datePublication;
+-++        dto.statut = article.statut.value;
+-++
+-++        return dto;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/dtos/categorie-response.dto.ts b/src/modules/blog/presentation/dtos/categorie-response.dto.ts
+-+new file mode 100644
+-+index 0000000..8569fb4
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/dtos/categorie-response.dto.ts
+-+@@ -0,0 +1,16 @@
+-++import { Categorie } from "../../domain/entities/categorie.entity.js";
+-++
+-++export class CategorieResourceDto {
+-++    id!: string;
+-++    slug!: string;
+-++    nom!: string;
+-++
+-++    static fromDomain(categorie: Categorie): CategorieResourceDto {
+-++        const dto = new CategorieResourceDto();
+-++        dto.id = categorie.id.toString();
+-++        dto.slug = categorie.slug.toString();
+-++        dto.nom = categorie.nom;
+-++
+-++        return dto;
+-++    }
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/dtos/create-article.dto.ts b/src/modules/blog/presentation/dtos/create-article.dto.ts
+-+new file mode 100644
+-+index 0000000..9fca954
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/dtos/create-article.dto.ts
+-+@@ -0,0 +1,32 @@
+-++import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+-++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-++
+-++export class CreateArticleDto {
+-++    @IsNotEmpty()
+-++    @IsString()
+-++    slug!: string;
+-++
+-++    @IsNotEmpty()
+-++    @IsString()
+-++    categoryId!: string;
+-++
+-++    @IsNotEmpty()
+-++    @IsString()
+-++    nom!: string;
+-++
+-++    @IsNotEmpty()
+-++    @IsString()
+-++    contenu: string;
+-++
+-++    @IsOptional()
+-++    @IsString()
+-++    image?: string;
+-++
+-++    @IsOptional()
+-++    @IsDateString()
+-++    datePublication?: Date;
+-++
+-++    @IsOptional()
+-++    @IsEnum(StatutArticleType)
+-++    statut?: StatutArticleType;
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/dtos/create-categorie.dto.ts b/src/modules/blog/presentation/dtos/create-categorie.dto.ts
+-+new file mode 100644
+-+index 0000000..a506b2a
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/dtos/create-categorie.dto.ts
+-+@@ -0,0 +1,11 @@
+-++import { IsNotEmpty, IsString } from "class-validator";
+-++
+-++export class CreateCategorieDto {
+-++    @IsString()
+-++    @IsNotEmpty()
+-++    slug!: string;
+-++
+-++    @IsString()
+-++    @IsNotEmpty()
+-++    nom!: string;
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts b/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts
+-+new file mode 100644
+-+index 0000000..bfc989a
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts
+-+@@ -0,0 +1,8 @@
+-++import { IsEnum, IsNotEmpty } from "class-validator";
+-++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-++
+-++export class SwitchArticleStatutDto {
+-++    @IsNotEmpty()
+-++    @IsEnum(StatutArticleType)
+-++    statut!: StatutArticleType;
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/dtos/update-article.dto.ts b/src/modules/blog/presentation/dtos/update-article.dto.ts
+-+new file mode 100644
+-+index 0000000..77d47f2
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/dtos/update-article.dto.ts
+-+@@ -0,0 +1,24 @@
+-++import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+-++import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-++
+-++export class UpdateArticleDto {
+-++    @IsNotEmpty()
+-++    @IsString()
+-++    categoryId!: string;
+-++
+-++    @IsNotEmpty()
+-++    @IsString()
+-++    nom!: string;
+-++
+-++    @IsNotEmpty()
+-++    @IsString()
+-++    contenu: string;
+-++
+-++    @IsOptional()
+-++    @IsString()
+-++    image?: string;
+-++
+-++    @IsOptional()
+-++    @IsDateString()
+-++    datePublication?: Date;
+-++}
+-+\ No newline at end of file
+-+diff --git a/src/modules/blog/presentation/dtos/update-categorie.dto.ts b/src/modules/blog/presentation/dtos/update-categorie.dto.ts
+-+new file mode 100644
+-+index 0000000..27944f4
+-+--- /dev/null
+-++++ b/src/modules/blog/presentation/dtos/update-categorie.dto.ts
+-+@@ -0,0 +1,7 @@
+-++import { IsNotEmpty, IsString } from "class-validator";
+-++
+-++export class UpdateCategorieDto {
+-++    @IsString()
+-++    @IsNotEmpty()
+-++    nom!: string;
+-++}
+-+\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/create-article.use-case.ts b/src/modules/blog/application/use-cases/create-article.use-case.ts
+-new file mode 100644
+-index 0000000..cf78e16
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/create-article.use-case.ts
+-@@ -0,0 +1,38 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+import { StatutArticle, StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+import { Article } from "../../domain/entities/article.entity.js";
+-+import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+
+-+export interface CreateArticleInput {
+-+    slug: string;
+-+    categorieId: string;
+-+    nom: string;
+-+    image: string | null;
+-+    contenu: string;
+-+}
+-+
+-+@Injectable()
+-+export class CreateArticleUseCase {
+-+    constructor(
+-+        @Inject(ARTICLE_REPOSITORY)
+-+        private readonly articleRepository: ArticleRepository
+-+    ) {}
+-+
+-+    async execute(input: CreateArticleInput): Promise<Article> {
+-+        const article = Article.create({
+-+            id: ArticleId.generate(),
+-+            slug: Slug.create(input.slug),
+-+            categorieId: CategorieId.create(input.categorieId),
+-+            nom: input.nom,
+-+            image: input.image,
+-+            contenu: input.contenu,
+-+        });
+-+
+-+        await this.articleRepository.save(article);
+-+
+-+        return article;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/create-categorie.use-case.ts b/src/modules/blog/application/use-cases/create-categorie.use-case.ts
+-new file mode 100644
+-index 0000000..f23143d
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/create-categorie.use-case.ts
+-@@ -0,0 +1,28 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+
+-+export interface CreateCategorieInput {
+-+    slug: string;
+-+    nom: string;
+-+};
+-+
+-+@Injectable()
+-+export class CreateCategorieUseCase {
+-+    constructor (
+-+        @Inject(CATEGORIE_REPOSITORY)
+-+        private readonly categorieRepository: CategorieRepository
+-+    ) {}
+-+
+-+    async execute(input: CreateCategorieInput): Promise<Categorie> {
+-+        const category = Categorie.create({
+-+            id: CategorieId.generate(),
+-+            slug: Slug.create(input.slug),
+-+            nom: input.nom
+-+        });
+-+        await this.categorieRepository.save(category);
+-+        return category;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/delete-article.use-case.ts b/src/modules/blog/application/use-cases/delete-article.use-case.ts
+-new file mode 100644
+-index 0000000..40b3543
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/delete-article.use-case.ts
+-@@ -0,0 +1,21 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+
+-+@Injectable()
+-+export class DeleteArticleUseCase {
+-+    constructor(
+-+        @Inject(ARTICLE_REPOSITORY)
+-+        private readonly articleRepository: ArticleRepository
+-+    ) {}
+-+
+-+    async execute(id: string): Promise<void> {
+-+        const articleId = ArticleId.create(id);
+-+        const article = await this.articleRepository.findById(articleId);
+-+        if(!article) {
+-+            throw new ArticleIntrouvableError(id);
+-+        }
+-+        await this.articleRepository.delete(articleId);
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/delete-categorie.use-case.ts b/src/modules/blog/application/use-cases/delete-categorie.use-case.ts
+-new file mode 100644
+-index 0000000..a6bb7c7
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/delete-categorie.use-case.ts
+-@@ -0,0 +1,23 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+
+-+@Injectable()
+-+export class DeleteCategorieUseCase {
+-+    constructor(
+-+        @Inject(CATEGORIE_REPOSITORY)
+-+        private readonly categorieRepository: CategorieRepository
+-+    ) {}
+-+
+-+    async execute(id: string): Promise<void> {
+-+        const categorieId = CategorieId.create(id);
+-+        const categorie = await this.categorieRepository.findById(categorieId);
+-+
+-+        if(!categorie) {
+-+            throw new CategorieIntrouvableError(id);
+-+        }
+-+        
+-+        await this.categorieRepository.delete(categorieId);
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts b/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts
+-new file mode 100644
+-index 0000000..c939ead
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/get-article-by-slug.use-case.ts
+-@@ -0,0 +1,24 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+import { Article } from "../../domain/entities/article.entity.js";
+-+import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+
+-+@Injectable()
+-+export class GetArticleBySlugUseCase {
+-+    constructor(
+-+        @Inject(ARTICLE_REPOSITORY)
+-+        private readonly articleRepository: ArticleRepository
+-+    ) {}
+-+
+-+    async execute(slug: string): Promise<Article> {
+-+       
+-+        const article = await this.articleRepository.findBySlug(Slug.create(slug));
+-+
+-+        if(!article) {
+-+            throw new ArticleIntrouvableError(slug);
+-+        }
+-+        
+-+        return article;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts b/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts
+-new file mode 100644
+-index 0000000..1ae7ddf
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/get-articles-by-categorie.use-case.ts
+-@@ -0,0 +1,16 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+import { Article } from "../../domain/entities/article.entity.js";
+-+import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+
+-+@Injectable()
+-+export class GetArticlesByCategorieUseCase {
+-+    constructor(
+-+        @Inject(ARTICLE_REPOSITORY)
+-+        private readonly articleRepository: ArticleRepository
+-+    ) {}
+-+
+-+    async execute(categorieId: string): Promise<Article[]> {
+-+        return await this.articleRepository.findByCategorie(CategorieId.create(categorieId));
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts b/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts
+-new file mode 100644
+-index 0000000..c5279e6
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/get-categorie-by-slug.use-case.ts
+-@@ -0,0 +1,23 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+import { Slug } from "src/shared/domain/value-objects/slug/slug.value-object.js";
+-+import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+
+-+@Injectable()
+-+export class GetCategorieBySlugUseCase {
+-+    constructor(
+-+        @Inject(CATEGORIE_REPOSITORY)
+-+        private readonly categorieRepository: CategorieRepository
+-+    ) {}
+-+
+-+    async execute(slug: string): Promise<Categorie> {
+-+        const categorie = await this.categorieRepository.findBySlug(Slug.create(slug));
+-+
+-+        if(!categorie) {
+-+            throw new CategorieIntrouvableError(slug);
+-+        }
+-+
+-+        return categorie;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/list-articles.use-case.ts b/src/modules/blog/application/use-cases/list-articles.use-case.ts
+-new file mode 100644
+-index 0000000..4c1a358
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/list-articles.use-case.ts
+-@@ -0,0 +1,15 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+import { Article } from "../../domain/entities/article.entity.js";
+-+
+-+@Injectable()
+-+export class ListArticleUseCase {
+-+    constructor(
+-+        @Inject(ARTICLE_REPOSITORY)
+-+        private readonly articleRepository: ArticleRepository
+-+    ) {}
+-+
+-+    async execute(): Promise<Article[]> {
+-+        return await this.articleRepository.findAll();
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/list-categories.use-case.ts b/src/modules/blog/application/use-cases/list-categories.use-case.ts
+-new file mode 100644
+-index 0000000..addd959
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/list-categories.use-case.ts
+-@@ -0,0 +1,15 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+
+-+@Injectable()
+-+export class ListCategorieUseCase {
+-+    constructor(
+-+        @Inject(CATEGORIE_REPOSITORY)
+-+        private readonly categorieRepository: CategorieRepository
+-+    ) {}
+-+
+-+    async execute(): Promise<Categorie[]> {
+-+        return this.categorieRepository.findAll();
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts b/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts
+-new file mode 100644
+-index 0000000..03a454a
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/switch-article-statut.use-case.ts
+-@@ -0,0 +1,34 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+import { Article } from "../../domain/entities/article.entity.js";
+-+
+-+export interface SwitchArticleInput {
+-+    id: string;
+-+    statut: StatutArticleType;
+-+}
+-+
+-+@Injectable()
+-+export class SwitchArticleStatutUseCase {
+-+    constructor(
+-+        @Inject(ARTICLE_REPOSITORY)
+-+        private readonly articleRepository: ArticleRepository
+-+    ) {}
+-+
+-+    async execute(input: SwitchArticleInput): Promise<Article> {
+-+        const articleId = ArticleId.create(input.id);
+-+        const article = await this.articleRepository.findById(articleId);
+-+        
+-+        if(!article) {
+-+            throw new ArticleIntrouvableError(input.id);
+-+        }
+-+
+-+        article.changerStatut(input.statut);
+-+
+-+        await this.articleRepository.save(article);
+-+       
+-+        return article;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/update-article.use-case.ts b/src/modules/blog/application/use-cases/update-article.use-case.ts
+-new file mode 100644
+-index 0000000..c5c5eab
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/update-article.use-case.ts
+-@@ -0,0 +1,44 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { ARTICLE_REPOSITORY, type ArticleRepository } from "../../domain/repositories/article.repository.js";
+-+import { StatutArticle, StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+import { Article } from "../../domain/entities/article.entity.js";
+-+import { ArticleId } from "../../domain/value-objects/article-id.value-object.js";
+-+import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+
+-+export interface UpdateArticleInput {
+-+    id: string;
+-+    categorieId: string;
+-+    nom: string;
+-+    image: string | null;
+-+    contenu: string;
+-+}
+-+
+-+@Injectable()
+-+export class UpdateArticleUseCase {
+-+    constructor(
+-+        @Inject(ARTICLE_REPOSITORY)
+-+        private readonly articleRepository: ArticleRepository
+-+    ) {}
+-+
+-+    async execute(input: UpdateArticleInput): Promise<Article> {
+-+       
+-+        const articleId = ArticleId.create(input.id);
+-+        const article = await this.articleRepository.findById(articleId);
+-+
+-+        if(!article) {
+-+            throw new ArticleIntrouvableError(input.id);
+-+        }
+-+
+-+        article.update({
+-+            categorieId : CategorieId.create(input.categorieId),
+-+            nom: input.nom,
+-+            image: input.image,
+-+            contenu: input.contenu,
+-+        })
+-+
+-+        await this.articleRepository.save(article);
+-+
+-+        return article;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/application/use-cases/update-categorie.use-case.ts b/src/modules/blog/application/use-cases/update-categorie.use-case.ts
+-new file mode 100644
+-index 0000000..9d5398a
+---- /dev/null
+-+++ b/src/modules/blog/application/use-cases/update-categorie.use-case.ts
+-@@ -0,0 +1,35 @@
+-+import { Inject, Injectable } from "@nestjs/common";
+-+import { CATEGORIE_REPOSITORY, type CategorieRepository } from "../../domain/repositories/categorie.repository.js";
+-+import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+import { CategorieId } from "../../domain/value-objects/categorie-id.value-object.js";
+-+import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+
+-+export interface UpdateCategorieInput {
+-+    id: string,
+-+    nom: string
+-+};
+-+
+-+@Injectable()
+-+export class UpdateCategorieUseCase {
+-+    constructor(
+-+        @Inject(CATEGORIE_REPOSITORY)
+-+        private readonly categoryRepository: CategorieRepository
+-+    ) {}
+-+
+-+    async execute(input: UpdateCategorieInput): Promise<Categorie> {
+-+        const categorie = await this.categoryRepository.findById(CategorieId.create(input.id));
+-+        
+-+        if(!categorie) {
+-+            throw new CategorieIntrouvableError(input.id);
+-+        }
+-+
+-+        categorie.update({
+-+            nom: input.nom
+-+        });
+-+
+-+        await this.categoryRepository.save(categorie);
+-+
+-+        return categorie;
+-+        
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/domain/entities/article.entity.ts b/src/modules/blog/domain/entities/article.entity.ts
+-index 790f3e5..da08019 100644
+---- a/src/modules/blog/domain/entities/article.entity.ts
+-+++ b/src/modules/blog/domain/entities/article.entity.ts
+-@@ -13,8 +13,13 @@ export interface CreateArticleParams {
+-   nom: string;
+-   image: string | null;
+-   contenu: string;
+--  datePublication: Date | null;
+--  statut?: StatutArticle;
+-+}
+-+
+-+export interface UpdateArticleParams {
+-+  categorieId: CategorieId;
+-+  nom: string;
+-+  image: string | null;
+-+  contenu: string;
+- }
+- 
+- export class Article {
+-@@ -37,8 +42,8 @@ export class Article {
+-       params.nom,
+-       params.image,
+-       params.contenu,
+--      params.datePublication,
+--      params.statut ?? StatutArticle.brouillon(),
+-+      null,
+-+      StatutArticle.brouillon(),
+-     );
+-   }
+- 
+-@@ -74,6 +79,13 @@ export class Article {
+-     return this._statut;
+-   }
+- 
+-+  update(params: UpdateArticleParams): void {
+-+    this._categorieId = params.categorieId;
+-+    this._nom = params.nom;
+-+    this._contenu = params.contenu;
+-+    this._image = params.image;
+-+  }
+-+
+-   publier(): void {
+-     this._statut = this._statut.transitionnerVers(StatutArticleType.PUBLIE);
+-     this._datePublication = this._datePublication ?? new Date();
+-@@ -82,4 +94,14 @@ export class Article {
+-   desactiver(): void {
+-     this._statut = this._statut.transitionnerVers(StatutArticleType.INACTIF);
+-   }
+-+
+-+  changerStatut(cible: StatutArticleType): void {
+-+    if(cible == StatutArticleType.PUBLIE) {
+-+      this.publier();
+-+    }
+-+    else if(cible == StatutArticleType.INACTIF)
+-+    {
+-+      this.desactiver()
+-+    }
+-+  }
+- }
+-diff --git a/src/modules/blog/domain/entities/categorie.entity.ts b/src/modules/blog/domain/entities/categorie.entity.ts
+-index 989235f..fe39c0f 100644
+---- a/src/modules/blog/domain/entities/categorie.entity.ts
+-+++ b/src/modules/blog/domain/entities/categorie.entity.ts
+-@@ -5,7 +5,11 @@ export interface CreateCategorieParams {
+-   id: CategorieId;
+-   slug: Slug;
+-   nom: string;
+--}
+-+};
+-+
+-+export interface UpdateCategorieParams {
+-+  nom: string;
+-+};
+- 
+- export class Categorie {
+-   private constructor(
+-@@ -29,4 +33,8 @@ export class Categorie {
+-   get nom(): string {
+-     return this._nom;
+-   }
+-+
+-+  update(params: UpdateCategorieParams): void {
+-+    this._nom = params.nom;
+-+  }
+- }
+-diff --git a/src/modules/blog/domain/errors/article-introuvable.error.ts b/src/modules/blog/domain/errors/article-introuvable.error.ts
+-new file mode 100644
+-index 0000000..ca3155e
+---- /dev/null
+-+++ b/src/modules/blog/domain/errors/article-introuvable.error.ts
+-@@ -0,0 +1,6 @@
+-+export class ArticleIntrouvableError extends Error {
+-+    constructor(identifiant: string) {
+-+        super(`Article introuvable : "${identifiant}"`);
+-+        this.name = "ArticleIntrouvableError";
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/domain/errors/categorie-introuvable.error.ts b/src/modules/blog/domain/errors/categorie-introuvable.error.ts
+-new file mode 100644
+-index 0000000..714e814
+---- /dev/null
+-+++ b/src/modules/blog/domain/errors/categorie-introuvable.error.ts
+-@@ -0,0 +1,6 @@
+-+export class CategorieIntrouvableError extends Error {
+-+    constructor(identifiant: string) {
+-+      super(`Catégorie introuvable : "${identifiant}"`);
+-+      this.name = 'CategorieIntrouvableError';
+-+    }
+-+  }
+-\ No newline at end of file
+-diff --git a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-index 1eacf44..fdde28b 100644
+---- a/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-+++ b/src/modules/blog/domain/value-objects/categorie-id.value-object.ts
+-@@ -8,6 +8,10 @@ export class CategorieId {
+-     return new CategorieId(value);
+-   }
+- 
+-+  static generate(): CategorieId {
+-+    return new CategorieId(crypto.randomUUID()); 
+-+  }
+-+
+-   toString(): string {
+-     return this.value;
+-   }
+-diff --git a/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts b/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts
+-new file mode 100644
+-index 0000000..f77cb0b
+---- /dev/null
+-+++ b/src/modules/blog/infrastructure/errors/articles-categorie-id-fkey-error-handler.ts
+-@@ -0,0 +1,17 @@
+-+import { PrismaError } from "src/shared/infrastructure/prisma-error-interface.js";
+-+import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+
+-+export function handleForeignKeyConstraintViolation(error: unknown, id: string): void {
+-+    const err = error as PrismaError;
+-+    
+-+    if (err.code !== 'P2003') {
+-+        return;
+-+    }
+-+    
+-+    const index = err.meta?.driverAdapterError?.cause?.constraint?.index ?? '';
+-+    
+-+    if (index === 'articles_categorie_id_fkey') {
+-+        throw new CategorieIntrouvableError(id);
+-+    }
+-+      
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-index ada692f..968440b 100644
+---- a/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-+++ b/src/modules/blog/infrastructure/repositories/prisma-article.repository.ts
+-@@ -7,6 +7,7 @@ import { ArticleId } from 'src/modules/blog/domain/value-objects/article-id.valu
+- import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+- import { CategorieId } from 'src/modules/blog/domain/value-objects/categorie-id.value-object.js';
+- import { handleUniqueConstraintError } from 'src/shared/infrastructure/prisma-error-handler.js';
+-+import { handleForeignKeyConstraintViolation } from '../errors/articles-categorie-id-fkey-error-handler.js';
+- 
+- @Injectable()
+- export class PrismaArticleRepository implements ArticleRepository {
+-@@ -22,6 +23,7 @@ export class PrismaArticleRepository implements ArticleRepository {
+-       });
+-     } catch (error)  {
+-       handleUniqueConstraintError(error, data.slug);
+-+      handleForeignKeyConstraintViolation(error, data.categorieId);
+-       throw error;
+-     }
+-     
+-diff --git a/src/modules/blog/presentation/controllers/article.controller.ts b/src/modules/blog/presentation/controllers/article.controller.ts
+-new file mode 100644
+-index 0000000..6999953
+---- /dev/null
+-+++ b/src/modules/blog/presentation/controllers/article.controller.ts
+-@@ -0,0 +1,141 @@
+-+import { BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
+-+import { CreateArticleUseCase } from "../../application/use-cases/create-article.use-case.js";
+-+import { UpdateArticleUseCase } from "../../application/use-cases/update-article.use-case.js";
+-+import { ListArticleUseCase } from "../../application/use-cases/list-articles.use-case.js";
+-+import { GetArticleBySlugUseCase } from "../../application/use-cases/get-article-by-slug.use-case.js";
+-+import { DeleteArticleUseCase } from "../../application/use-cases/delete-article.use-case.js";
+-+import { AuthGuard } from "src/modules/auth/auth.guard.js";
+-+import { CreateArticleDto } from "../dtos/create-article.dto.js";
+-+import { ArticleResponseDto } from "../dtos/article-response.dto.js";
+-+import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
+-+import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
+-+import { UpdateArticleDto } from "../dtos/update-article.dto.js";
+-+import { SwitchArticleStatutUseCase } from "../../application/use-cases/switch-article-statut.use-case.js";
+-+import { SwitchArticleStatutDto } from "../dtos/switch-article-statut.dto.js";
+-+import { TransitionStatutInvalideError } from "../../domain/errors/transition-statut-invalide.error.js";
+-+import { GetArticlesByCategorieUseCase } from "../../application/use-cases/get-articles-by-categorie.use-case.js";
+-+
+-+@Controller('articles')
+-+export class ArticleController {
+-+    constructor(
+-+        private readonly createArticleUseCase: CreateArticleUseCase,
+-+        private readonly updateArticleUseCase: UpdateArticleUseCase,
+-+        private readonly listArticleUseCase: ListArticleUseCase,
+-+        private readonly getArticleBySlugUseCase: GetArticleBySlugUseCase,
+-+        private readonly deleteArticleUseCase: DeleteArticleUseCase,
+-+        private readonly switchArticleStatutUseCase: SwitchArticleStatutUseCase,
+-+        private readonly getArticlesByCategorieUseCase: GetArticlesByCategorieUseCase
+-+    ) {}
+-+
+-+    @Post()
+-+    @UseGuards(AuthGuard)
+-+    @HttpCode(HttpStatus.CREATED)
+-+    async create(@Body()dto: CreateArticleDto): Promise<ArticleResponseDto> {
+-+        try {
+-+            const article = await this.createArticleUseCase.execute({
+-+                slug: dto.slug,
+-+                categorieId: dto.categorieId,
+-+                nom: dto.nom,
+-+                contenu: dto.contenu,
+-+                image: dto.image ?? null,
+-+            });
+-+
+-+            return ArticleResponseDto.fromDomain(article);
+-+        } catch(error) {
+-+            if(error instanceof SlugDejaUtiliseError) {
+-+                throw new ConflictException(error.message);
+-+            }
+-+            if(error instanceof CategorieIntrouvableError) {
+-+                throw new BadRequestException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+
+-+    @Get('/categorie/:categorieId')
+-+    async getByCategorie(@Param('categorieId')categorieId: string): Promise<ArticleResponseDto[]> {
+-+        const rows = await this.getArticlesByCategorieUseCase.execute(categorieId);
+-+
+-+        return rows.map(ArticleResponseDto.fromDomain);
+-+    }
+-+
+-+    @Get('/:slug') 
+-+    async getBySlug(@Param('slug')slug: string): Promise<ArticleResponseDto> {
+-+        try {
+-+            const article = await this.getArticleBySlugUseCase.execute(slug);
+-+            return ArticleResponseDto.fromDomain(article);
+-+        } catch (error) {
+-+            if(error instanceof ArticleIntrouvableError) {
+-+                throw new NotFoundException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+
+-+    @Get()
+-+    async list(): Promise<ArticleResponseDto[]> {
+-+        const rows = await this.listArticleUseCase.execute();
+-+        return  rows.map(ArticleResponseDto.fromDomain);
+-+    }
+-+
+-+    @Put('/statut/:id')
+-+    @UseGuards(AuthGuard)
+-+    async switchStatut(@Param('id', ParseUUIDPipe)id: string, @Body()dto: SwitchArticleStatutDto): Promise<ArticleResponseDto> {
+-+        try {
+-+            const article = await this.switchArticleStatutUseCase.execute({
+-+                id: id,
+-+                statut: dto.statut
+-+            });
+-+
+-+            return ArticleResponseDto.fromDomain(article);
+-+        } catch(error) {
+-+            if(error instanceof ArticleIntrouvableError) {
+-+                throw new NotFoundException(error.message);
+-+            }
+-+
+-+            if(error instanceof TransitionStatutInvalideError) {
+-+                throw new BadRequestException(error.message);
+-+            }
+-+
+-+            throw error;
+-+        }
+-+    }
+-+
+-+    @Put('/:id')
+-+    @UseGuards(AuthGuard)
+-+    async update(@Param('id', ParseUUIDPipe)id: string, @Body()dto: UpdateArticleDto): Promise<ArticleResponseDto> {
+-+        try {
+-+            const article = await this.updateArticleUseCase.execute({
+-+                id: id,
+-+                categorieId: dto.categorieId,
+-+                nom: dto.nom,
+-+                contenu: dto.contenu,
+-+                image: dto.image ?? null
+-+            });
+-+
+-+            return ArticleResponseDto.fromDomain(article);
+-+        } catch(error) {
+-+            if(error instanceof ArticleIntrouvableError) {
+-+                throw new NotFoundException(error.message);
+-+            }
+-+            if(error instanceof CategorieIntrouvableError) {
+-+                throw new BadRequestException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+
+-+    @Delete('/:id')
+-+    @UseGuards(AuthGuard)
+-+    async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
+-+        try {
+-+            await this.deleteArticleUseCase.execute(id);
+-+        } catch(error) {
+-+            if(error instanceof ArticleIntrouvableError) {
+-+                throw new NotFoundException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/controllers/categorie.controller.ts b/src/modules/blog/presentation/controllers/categorie.controller.ts
+-new file mode 100644
+-index 0000000..66fd16c
+---- /dev/null
+-+++ b/src/modules/blog/presentation/controllers/categorie.controller.ts
+-@@ -0,0 +1,96 @@
+-+import { Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
+-+import { CreateCategorieUseCase } from "../../application/use-cases/create-categorie.use-case.js";
+-+import { UpdateCategorieUseCase } from "../../application/use-cases/update-categorie.use-case.js";
+-+import { GetCategorieBySlugUseCase } from "../../application/use-cases/get-categorie-by-slug.use-case.js";
+-+import { ListCategorieUseCase } from "../../application/use-cases/list-categories.use-case.js";
+-+import { DeleteCategorieUseCase } from "../../application/use-cases/delete-categorie.use-case.js";
+-+import { AuthGuard } from "src/modules/auth/auth.guard.js";
+-+import { CreateCategorieDto } from "../dtos/create-categorie.dto.js";
+-+import { CategorieResourceDto } from "../dtos/categorie-response.dto.js";
+-+import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
+-+import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
+-+import { UpdateCategorieDto } from "../dtos/update-categorie.dto.js";
+-+import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+
+-+@Controller('categories')
+-+export class CategorieController {
+-+    constructor(
+-+        private readonly createCategorieUseCase: CreateCategorieUseCase,
+-+        private readonly updateCategorieUseCase: UpdateCategorieUseCase,
+-+        private readonly getCategorieBySlugUseCase: GetCategorieBySlugUseCase,
+-+        private readonly listCategorieUsecase: ListCategorieUseCase,
+-+        private readonly deleteCategorieUseCase: DeleteCategorieUseCase,
+-+    ) {}
+-+
+-+    @Post()
+-+    @HttpCode(HttpStatus.CREATED)
+-+    @UseGuards(AuthGuard)
+-+    async create(@Body()dto: CreateCategorieDto): Promise<CategorieResourceDto> {
+-+        try {
+-+            const categorie = await this.createCategorieUseCase.execute({
+-+                slug: dto.slug,
+-+                nom: dto.nom
+-+            });
+-+
+-+            return CategorieResourceDto.fromDomain(categorie);
+-+        } catch(error) {
+-+            if(error instanceof SlugDejaUtiliseError) {
+-+                throw new ConflictException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+
+-+    @Get('/:slug')
+-+    async getBySlug(@Param('slug')slug: string): Promise<CategorieResourceDto> {
+-+        try {
+-+            const raw = await this.getCategorieBySlugUseCase.execute(slug);
+-+            return CategorieResourceDto.fromDomain(raw);
+-+        } catch(error) {
+-+            if(error instanceof CategorieIntrouvableError) {
+-+                throw new NotFoundException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+
+-+    @Get()
+-+    async list(): Promise<CategorieResourceDto[]> {
+-+        const rows = await this.listCategorieUsecase.execute();
+-+        return rows.map(CategorieResourceDto.fromDomain);
+-+    }
+-+
+-+    @Put('/:id')
+-+    @UseGuards(AuthGuard)
+-+    async update(@Param('id', ParseUUIDPipe)id: string, @Body()dto: UpdateCategorieDto): Promise<CategorieResourceDto> {
+-+        try {
+-+            const categorie = await this.updateCategorieUseCase.execute({
+-+                id: id,
+-+                nom: dto.nom
+-+            });
+-+
+-+            return CategorieResourceDto.fromDomain(categorie);
+-+        } catch(error) {
+-+            if(error instanceof CategorieIntrouvableError) {
+-+                throw new NotFoundException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+
+-+    @Delete('/:id')
+-+    @UseGuards(AuthGuard)
+-+    @HttpCode(HttpStatus.NO_CONTENT)
+-+    async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
+-+        try {
+-+            await this.deleteCategorieUseCase.execute(id);
+-+        } catch(error) {
+-+            if(error instanceof CategorieIntrouvableError) {
+-+                throw new NotFoundException(error.message);
+-+            }
+-+            throw error;
+-+        }
+-+    }
+-+
+-+   
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/dtos/article-response.dto.ts b/src/modules/blog/presentation/dtos/article-response.dto.ts
+-new file mode 100644
+-index 0000000..380011d
+---- /dev/null
+-+++ b/src/modules/blog/presentation/dtos/article-response.dto.ts
+-@@ -0,0 +1,27 @@
+-+import { Article } from "../../domain/entities/article.entity.js";
+-+import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+
+-+export class ArticleResponseDto {
+-+    id!: string;
+-+    slug!: string;
+-+    categorieId!: string;
+-+    nom!: string;
+-+    contenu!: string;
+-+    image?: string | null;
+-+    datePublication?: Date | null;
+-+    statut!: StatutArticleType;
+-+
+-+    static fromDomain(article: Article): ArticleResponseDto {
+-+        const dto = new ArticleResponseDto();
+-+        dto.id = article.id.toString();
+-+        dto.slug = article.slug.toString();
+-+        dto.categorieId = article.categorieId.toString();
+-+        dto.nom = article.nom;
+-+        dto.contenu = article.contenu;
+-+        dto.image = article.image;
+-+        dto.datePublication = article.datePublication;
+-+        dto.statut = article.statut.value;
+-+
+-+        return dto;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/dtos/categorie-response.dto.ts b/src/modules/blog/presentation/dtos/categorie-response.dto.ts
+-new file mode 100644
+-index 0000000..8569fb4
+---- /dev/null
+-+++ b/src/modules/blog/presentation/dtos/categorie-response.dto.ts
+-@@ -0,0 +1,16 @@
+-+import { Categorie } from "../../domain/entities/categorie.entity.js";
+-+
+-+export class CategorieResourceDto {
+-+    id!: string;
+-+    slug!: string;
+-+    nom!: string;
+-+
+-+    static fromDomain(categorie: Categorie): CategorieResourceDto {
+-+        const dto = new CategorieResourceDto();
+-+        dto.id = categorie.id.toString();
+-+        dto.slug = categorie.slug.toString();
+-+        dto.nom = categorie.nom;
+-+
+-+        return dto;
+-+    }
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/dtos/create-article.dto.ts b/src/modules/blog/presentation/dtos/create-article.dto.ts
+-new file mode 100644
+-index 0000000..7160029
+---- /dev/null
+-+++ b/src/modules/blog/presentation/dtos/create-article.dto.ts
+-@@ -0,0 +1,23 @@
+-+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+-+
+-+export class CreateArticleDto {
+-+    @IsNotEmpty()
+-+    @IsString()
+-+    slug!: string;
+-+
+-+    @IsNotEmpty()
+-+    @IsString()
+-+    categorieId!: string;
+-+
+-+    @IsNotEmpty()
+-+    @IsString()
+-+    nom!: string;
+-+
+-+    @IsNotEmpty()
+-+    @IsString()
+-+    contenu!: string;
+-+
+-+    @IsOptional()
+-+    @IsString()
+-+    image?: string;
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/dtos/create-categorie.dto.ts b/src/modules/blog/presentation/dtos/create-categorie.dto.ts
+-new file mode 100644
+-index 0000000..a506b2a
+---- /dev/null
+-+++ b/src/modules/blog/presentation/dtos/create-categorie.dto.ts
+-@@ -0,0 +1,11 @@
+-+import { IsNotEmpty, IsString } from "class-validator";
+-+
+-+export class CreateCategorieDto {
+-+    @IsString()
+-+    @IsNotEmpty()
+-+    slug!: string;
+-+
+-+    @IsString()
+-+    @IsNotEmpty()
+-+    nom!: string;
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts b/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts
+-new file mode 100644
+-index 0000000..bfc989a
+---- /dev/null
+-+++ b/src/modules/blog/presentation/dtos/switch-article-statut.dto.ts
+-@@ -0,0 +1,8 @@
+-+import { IsEnum, IsNotEmpty } from "class-validator";
+-+import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+
+-+export class SwitchArticleStatutDto {
+-+    @IsNotEmpty()
+-+    @IsEnum(StatutArticleType)
+-+    statut!: StatutArticleType;
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/dtos/update-article.dto.ts b/src/modules/blog/presentation/dtos/update-article.dto.ts
+-new file mode 100644
+-index 0000000..a64e156
+---- /dev/null
+-+++ b/src/modules/blog/presentation/dtos/update-article.dto.ts
+-@@ -0,0 +1,20 @@
+-+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+-+import { StatutArticleType } from "../../domain/value-objects/statut-article.value-object.js";
+-+
+-+export class UpdateArticleDto {
+-+    @IsNotEmpty()
+-+    @IsString()
+-+    categorieId!: string;
+-+
+-+    @IsNotEmpty()
+-+    @IsString()
+-+    nom!: string;
+-+
+-+    @IsNotEmpty()
+-+    @IsString()
+-+    contenu!: string;
+-+
+-+    @IsOptional()
+-+    @IsString()
+-+    image?: string;
+-+}
+-\ No newline at end of file
+-diff --git a/src/modules/blog/presentation/dtos/update-categorie.dto.ts b/src/modules/blog/presentation/dtos/update-categorie.dto.ts
+-new file mode 100644
+-index 0000000..27944f4
+---- /dev/null
+-+++ b/src/modules/blog/presentation/dtos/update-categorie.dto.ts
+-@@ -0,0 +1,7 @@
+-+import { IsNotEmpty, IsString } from "class-validator";
+-+
+-+export class UpdateCategorieDto {
+-+    @IsString()
+-+    @IsNotEmpty()
+-+    nom!: string;
+-+}
+-\ No newline at end of file
+diff --git a/prisma.config.ts b/prisma.config.ts
+index 831a20f..20d66e5 100644
+--- a/prisma.config.ts
++++ b/prisma.config.ts
+@@ -10,5 +10,6 @@ export default defineConfig({
+   },
+   datasource: {
+     url: process.env["DATABASE_URL"],
++    shadowDatabaseUrl: process.env["SHADOW_DATABASE_URL"],
+   },
+ });
+diff --git a/prisma/migrations/20260827140606_add_tag_taggable/migration.sql b/prisma/migrations/20260827140606_add_tag_taggable/migration.sql
+new file mode 100644
+index 0000000..7bbc40a
+--- /dev/null
++++ b/prisma/migrations/20260827140606_add_tag_taggable/migration.sql
+@@ -0,0 +1,33 @@
++-- CreateEnum
++CREATE TYPE "TagType" AS ENUM ('STACK', 'SOFT_SKILL', 'AUTRE');
++
++-- CreateEnum
++CREATE TYPE "TaggableType" AS ENUM ('EXPERIENCE', 'PROJET', 'ARTICLE');
++
++-- CreateTable
++CREATE TABLE "tags" (
++    "id" TEXT NOT NULL,
++    "nom" TEXT NOT NULL,
++    "type" "TagType" NOT NULL,
++
++    CONSTRAINT "tags_pkey" PRIMARY KEY ("id")
++);
++
++-- CreateTable
++CREATE TABLE "taggables" (
++    "id" TEXT NOT NULL,
++    "tag_id" TEXT NOT NULL,
++    "taggable_type" "TaggableType" NOT NULL,
++    "taggable_id" TEXT NOT NULL,
++
++    CONSTRAINT "taggables_pkey" PRIMARY KEY ("id")
++);
++
++-- CreateIndex
++CREATE UNIQUE INDEX "tags_nom_key" ON "tags"("nom");
++
++-- CreateIndex
++CREATE UNIQUE INDEX "taggables_tag_id_taggable_type_taggable_id_key" ON "taggables"("tag_id", "taggable_type", "taggable_id");
++
++-- AddForeignKey
++ALTER TABLE "taggables" ADD CONSTRAINT "taggables_tag_id_fkey" FOREIGN KEY ("tag_id") REFERENCES "tags"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index bfe817a..543980a 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -46,34 +46,33 @@ model Projet {
+   details      String
+   lienDemo     String?   @map("lien_demo")
+ 
+-  experience   Experience? @relation(fields: [experienceId], references: [id])
++  experience Experience? @relation(fields: [experienceId], references: [id])
+ 
+   @@map("projets")
+ }
+ 
+ model Categorie {
+-  id        String @id @default(uuid())
+-  slug      String @unique
+-  nom       String
+-  articles  Article[]
++  id       String    @id @default(uuid())
++  slug     String    @unique
++  nom      String
++  articles Article[]
+ 
+   @@map("categories")
+ }
+ 
+ model Article {
+-  id              String @id @default(uuid())
+-  slug            String @unique
+-  categorieId     String @map("categorie_id")
++  id              String        @id @default(uuid())
++  slug            String        @unique
++  categorieId     String        @map("categorie_id")
+   nom             String
+   image           String?
+   contenu         String
+-  datePublication DateTime? @map("date_publication")
++  datePublication DateTime?     @map("date_publication")
+   statut          StatutArticle
+ 
+   categorie Categorie @relation(fields: [categorieId], references: [id])
+ 
+   @@map("articles")
+-
+ }
+ 
+ enum StatutArticle {
+@@ -94,4 +93,38 @@ model Profil {
+   adresse     String?
+ 
+   @@map("profils")
+-}
+\ No newline at end of file
++}
++
++model Tag {
++  id   String  @id @default(uuid())
++  nom  String  @unique
++  type TagType
++
++  taggables Taggable[]
++
++  @@map("tags")
++}
++
++enum TagType {
++  STACK
++  SOFT_SKILL
++  AUTRE
++}
++
++model Taggable {
++  id           String       @id @default(uuid())
++  tagId        String       @map("tag_id")
++  taggableType TaggableType @map("taggable_type")
++  taggableId   String       @map("taggable_id")
++
++  tag Tag @relation(fields: [tagId], references: [id])
++
++  @@unique([tagId, taggableType, taggableId])
++  @@map("taggables")
++}
++
++enum TaggableType {
++  EXPERIENCE
++  PROJET
++  ARTICLE
++}
+diff --git a/src/modules/tag/application/use-cases/create-tag.use-case.ts b/src/modules/tag/application/use-cases/create-tag.use-case.ts
+new file mode 100644
+index 0000000..174b91e
+--- /dev/null
++++ b/src/modules/tag/application/use-cases/create-tag.use-case.ts
+@@ -0,0 +1,30 @@
++import { Inject, Injectable } from "@nestjs/common";
++import { TAG_REPOSITORY, type TagRepository } from "../../domain/repository/tag.repository.js";
++import { TagType, TagTypeEnum } from "../../domain/value-object/tag-type.value-object.js";
++import { Tag } from "../../domain/entity/tag.entity.js";
++import { TagId } from "../../domain/value-object/tag-id.value-object.js";
++
++export interface CreateTagInput {
++    nom : string;
++    type : TagTypeEnum;
++}
++
++@Injectable()
++export class CreateTagUseCase {
++    constructor(
++        @Inject(TAG_REPOSITORY)
++        private readonly tagRepository: TagRepository
++    ) {}
++
++    async execute(input: CreateTagInput): Promise<Tag> {
++        const tag = Tag.create({
++            id: TagId.generate(),
++            nom: input.nom,
++            type: TagType.create(input.type)
++        });
++
++        await this.tagRepository.save(tag);
++
++        return tag;
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/application/use-cases/delete-tag.use-case.ts b/src/modules/tag/application/use-cases/delete-tag.use-case.ts
+new file mode 100644
+index 0000000..a00a901
+--- /dev/null
++++ b/src/modules/tag/application/use-cases/delete-tag.use-case.ts
+@@ -0,0 +1,23 @@
++import { Inject, Injectable } from "@nestjs/common";
++import { TAG_REPOSITORY, type TagRepository } from "../../domain/repository/tag.repository.js";
++import { TagId } from "../../domain/value-object/tag-id.value-object.js";
++import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
++
++@Injectable()
++export class DeleteTagUseCase {
++    constructor(
++        @Inject(TAG_REPOSITORY)
++        private readonly tagRepository: TagRepository
++    ) {}
++
++    async execute(id: string): Promise<void> {
++        const tagId = TagId.create(id);
++        const tag = await this.tagRepository.findById(tagId);
++
++        if(!tag) {
++            throw new TagNonTrouve(id);
++        }
++
++        await this.tagRepository.delete(tagId);
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/application/use-cases/get-tag-by-id.use-case.ts b/src/modules/tag/application/use-cases/get-tag-by-id.use-case.ts
+new file mode 100644
+index 0000000..4e0cd3c
+--- /dev/null
++++ b/src/modules/tag/application/use-cases/get-tag-by-id.use-case.ts
+@@ -0,0 +1,23 @@
++import { Inject, Injectable } from "@nestjs/common";
++import { TAG_REPOSITORY, type TagRepository } from "../../domain/repository/tag.repository.js";
++import { Tag } from "../../domain/entity/tag.entity.js";
++import { TagId } from "../../domain/value-object/tag-id.value-object.js";
++import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
++
++@Injectable()
++export class GetTagByIdUseCase {
++    constructor(
++        @Inject(TAG_REPOSITORY)
++        private readonly tagRepository: TagRepository
++    ) {}
++
++    async execute(id: string): Promise<Tag> {
++        const tag = await this.tagRepository.findById(TagId.create(id));
++
++        if(!tag) {
++            throw new TagNonTrouve(id);
++        }
++
++        return tag;
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/application/use-cases/list-tags.use-case.ts b/src/modules/tag/application/use-cases/list-tags.use-case.ts
+new file mode 100644
+index 0000000..6979c0d
+--- /dev/null
++++ b/src/modules/tag/application/use-cases/list-tags.use-case.ts
+@@ -0,0 +1,15 @@
++import { Inject, Injectable } from "@nestjs/common";
++import { TAG_REPOSITORY, type TagRepository } from "../../domain/repository/tag.repository.js";
++import { Tag } from "../../domain/entity/tag.entity.js";
++
++@Injectable()
++export class ListTagsUseCase {
++    constructor(
++        @Inject(TAG_REPOSITORY)
++        private readonly tagRepository: TagRepository
++    ) {}
++
++    async execute(): Promise<Tag[]> {
++        return await this.tagRepository.findAll();
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/application/use-cases/update-tag.use-case.ts b/src/modules/tag/application/use-cases/update-tag.use-case.ts
+new file mode 100644
+index 0000000..2406eb7
+--- /dev/null
++++ b/src/modules/tag/application/use-cases/update-tag.use-case.ts
+@@ -0,0 +1,38 @@
++import { Inject, Injectable } from "@nestjs/common";
++import { TAG_REPOSITORY, type TagRepository } from "../../domain/repository/tag.repository.js";
++import { TagType, TagTypeEnum } from "../../domain/value-object/tag-type.value-object.js";
++import { Tag } from "../../domain/entity/tag.entity.js";
++import { TagId } from "../../domain/value-object/tag-id.value-object.js";
++import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
++
++export interface UpdateTagInput {
++    id: string,
++    nom : string;
++    type : TagTypeEnum;
++}
++
++@Injectable()
++export class UpdateTagUseCase {
++    constructor(
++        @Inject(TAG_REPOSITORY)
++        private readonly tagRepository: TagRepository
++    ) {}
++
++    async execute(input: UpdateTagInput): Promise<Tag> {
++        const tagId = TagId.create(input.id);
++        const tag = await this.tagRepository.findById(tagId);
++
++        if(!tag) {
++            throw new TagNonTrouve(input.id);
++        }
++
++        tag.update({
++            nom: input.id,
++            type: TagType.create(input.type)
++        });
++
++        await this.tagRepository.save(tag);
++
++        return tag;
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/domain/entity/tag.entity.ts b/src/modules/tag/domain/entity/tag.entity.ts
+new file mode 100644
+index 0000000..c1cbe7d
+--- /dev/null
++++ b/src/modules/tag/domain/entity/tag.entity.ts
+@@ -0,0 +1,47 @@
++import { TagId } from "../value-object/tag-id.value-object.js";
++import { TagType } from "../value-object/tag-type.value-object.js";
++
++export interface CreateTagParams {
++    id: TagId;
++    nom: string;
++    type: TagType;
++}
++
++export interface UpdateTagParams {
++    nom: string;
++    type: TagType;
++}
++
++export class Tag {
++    private constructor(
++        private readonly _id: TagId,
++        private _nom: string,
++        private _type: TagType
++    ) {}
++
++    static create(params: CreateTagParams): Tag {
++        return new Tag(
++            params.id,
++            params.nom,
++            params.type
++        );
++    }
++
++    get id(): TagId {
++        return this._id;
++    }
++
++    get nom(): string {
++        return this._nom;
++    }
++
++    get type(): TagType {
++        return this._type;
++    }
++
++    update(params: UpdateTagParams): void {
++        this._nom = params.nom;
++        this._type = params.type;
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/domain/errors/nom-deja-utilise.error.ts b/src/modules/tag/domain/errors/nom-deja-utilise.error.ts
+new file mode 100644
+index 0000000..b5e9dfe
+--- /dev/null
++++ b/src/modules/tag/domain/errors/nom-deja-utilise.error.ts
+@@ -0,0 +1,6 @@
++export class NomDejaUtilise extends Error {
++    constructor(nom: string) {
++        super('Nom déjà utilisé: '+nom);
++        this.name = 'NomDejaUtilise';
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/domain/errors/tag-non-trouve.error.ts b/src/modules/tag/domain/errors/tag-non-trouve.error.ts
+new file mode 100644
+index 0000000..7289acd
+--- /dev/null
++++ b/src/modules/tag/domain/errors/tag-non-trouve.error.ts
+@@ -0,0 +1,6 @@
++export class TagNonTrouve extends Error {
++    constructor(identifiant: string) {
++        super('Tag non trouvé: '+identifiant);
++        this.name = 'TagNonTrouve';
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/domain/repository/tag.repository.ts b/src/modules/tag/domain/repository/tag.repository.ts
+new file mode 100644
+index 0000000..0b5fa3e
+--- /dev/null
++++ b/src/modules/tag/domain/repository/tag.repository.ts
+@@ -0,0 +1,11 @@
++import { Tag } from "../entity/tag.entity.js";
++import { TagId } from "../value-object/tag-id.value-object.js";
++
++export interface TagRepository {
++    save(tag: Tag): Promise<void>;
++    findById(tagId: TagId): Promise<Tag | null>;
++    findAll(): Promise<Tag[]>;
++    delete(tagId: TagId): Promise<void>;
++}
++
++export const TAG_REPOSITORY = Symbol('TAG_REPOSITORY');
+\ No newline at end of file
+diff --git a/src/modules/tag/domain/value-object/tag-id.value-object.ts b/src/modules/tag/domain/value-object/tag-id.value-object.ts
+new file mode 100644
+index 0000000..823805e
+--- /dev/null
++++ b/src/modules/tag/domain/value-object/tag-id.value-object.ts
+@@ -0,0 +1,22 @@
++export class TagId {
++    constructor(private readonly value: string) { }
++
++    static create(value: string) : TagId {
++        if(!value && value.trim().length === 0 ) {
++            throw Error('TagId ne peut pas être vide.');
++        }
++        return new TagId(value);
++    }
++
++    static generate(): TagId {
++        return new TagId(crypto.randomUUID());
++    }
++
++    toString(): string {
++        return this.value;
++    }
++
++    equals(other: TagId): boolean {
++        return this.value == other.value;
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/domain/value-object/tag-type.value-object.ts b/src/modules/tag/domain/value-object/tag-type.value-object.ts
+new file mode 100644
+index 0000000..1f37a05
+--- /dev/null
++++ b/src/modules/tag/domain/value-object/tag-type.value-object.ts
+@@ -0,0 +1,25 @@
++export enum TagTypeEnum {
++    STACK = 'stack',
++    SOFT_SKILL = 'soft skill',
++    AUTRE = 'autre'
++};
++
++export class TagType {
++    constructor(private readonly type: TagTypeEnum) {}
++
++    static create(value: TagTypeEnum): TagType {
++        if(!Object.values(TagTypeEnum).includes(value)) {
++            throw new Error('type de tag invalide: '+value);
++        }
++
++        return new TagType(value);
++    }
++
++    get value(): TagTypeEnum {
++        return this.type;
++    }
++
++    equals(other: TagType): boolean {
++        return this.type == other.type;
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/infrastructure/errors/tag-nom-unique-error.handler.ts b/src/modules/tag/infrastructure/errors/tag-nom-unique-error.handler.ts
+new file mode 100644
+index 0000000..0fc4ab5
+--- /dev/null
++++ b/src/modules/tag/infrastructure/errors/tag-nom-unique-error.handler.ts
+@@ -0,0 +1,16 @@
++import { PrismaError } from 'src/shared/infrastructure/prisma-error-interface.js';
++import { NomDejaUtilise } from '../../domain/errors/nom-deja-utilise.error.js';
++
++export function handleUniqueConstraintError(error: unknown, nom: string): void {
++  const err = error as PrismaError;
++
++  if (err.code !== 'P2002') {
++    return;
++  }
++
++  const fields = err.meta?.driverAdapterError?.cause?.constraint?.fields ?? [];
++
++  if (fields.includes('nom')) {
++    throw new NomDejaUtilise(nom);
++  }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/infrastructure/mappers/tag.mapppers.ts b/src/modules/tag/infrastructure/mappers/tag.mapppers.ts
+new file mode 100644
+index 0000000..3ff6591
+--- /dev/null
++++ b/src/modules/tag/infrastructure/mappers/tag.mapppers.ts
+@@ -0,0 +1,35 @@
++import { TagType as PrismaTagType } from "src/generated/prisma/enums.js";
++import { TagType, TagTypeEnum } from "../../domain/value-object/tag-type.value-object.js";
++import { Tag as PrismaTag } from "src/generated/prisma/client.js";
++import { Tag } from "../../domain/entity/tag.entity.js";
++import { TagId } from "../../domain/value-object/tag-id.value-object.js";
++
++const DOMAIN_TO_PRISMA_TAG_TYPE: Record<TagTypeEnum, PrismaTagType> = {
++    [TagTypeEnum.STACK]: PrismaTagType.STACK,
++    [TagTypeEnum.SOFT_SKILL]: PrismaTagType.SOFT_SKILL,
++    [TagTypeEnum.AUTRE]: PrismaTagType.AUTRE
++};
++
++const PRISMA_TO_DOMAIN_TAG_TYPE: Record<PrismaTagType, TagTypeEnum> = {
++    [PrismaTagType.STACK]: TagTypeEnum.STACK,
++    [PrismaTagType.SOFT_SKILL]: TagTypeEnum.SOFT_SKILL,
++    [PrismaTagType.AUTRE]: TagTypeEnum.AUTRE
++};
++
++export class TagMapper {
++    static toDomain(raw: PrismaTag): Tag {
++        return Tag.create({
++            id: TagId.create(raw.id),
++            nom: raw.nom,
++            type: TagType.create(PRISMA_TO_DOMAIN_TAG_TYPE[raw.type])
++        });
++    }
++
++    static toPrisma(tag: Tag): PrismaTag {
++        return {
++            id: tag.id.toString(),
++            nom: tag.nom,
++            type: DOMAIN_TO_PRISMA_TAG_TYPE[tag.type.value]
++        };
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/infrastructure/repositories/prisma-tag.repository.ts b/src/modules/tag/infrastructure/repositories/prisma-tag.repository.ts
+new file mode 100644
+index 0000000..d98e72b
+--- /dev/null
++++ b/src/modules/tag/infrastructure/repositories/prisma-tag.repository.ts
+@@ -0,0 +1,53 @@
++import { Injectable } from "@nestjs/common";
++import { PrismaService } from "src/shared/infrastructure/prisma.service.js";
++import { TagRepository } from "../../domain/repository/tag.repository.js";
++import { Tag } from "../../domain/entity/tag.entity.js";
++import { TagMapper } from "../mappers/tag.mapppers.js";
++import { handleUniqueConstraintError } from "../errors/tag-nom-unique-error.handler.js";
++import { TagId } from "../../domain/value-object/tag-id.value-object.js";
++import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
++
++@Injectable()
++export class PrismaTagRepository implements TagRepository {
++    constructor(private readonly prima: PrismaService) {}
++
++    async save(tag: Tag): Promise<void> {
++        const data = TagMapper.toPrisma(tag);
++
++        try {
++            await this.prima.tag.upsert({
++                where: {id: data.id},
++                create : data,
++                update : data
++            });
++        } catch(error) {
++            handleUniqueConstraintError(error, data.nom)
++        }
++
++        
++    }
++
++    async findById(tagId: TagId): Promise<Tag | null> {
++        const id = tagId.toString();
++
++        const raw = await this.prima.tag.findUnique({
++            where: {id: id}
++        });
++
++        return raw ? TagMapper.toDomain(raw) : null;
++    }
++
++    async findAll(): Promise<Tag[]> {
++        const rows = await this.prima.tag.findMany({
++            orderBy: {nom: 'asc'}
++        });
++
++        return rows.map(TagMapper.toDomain);
++    }
++
++    async delete(tagId: TagId): Promise<void> {
++        await this.prima.tag.delete({
++            where: {id: tagId.toString()}
++        });
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/presentation/controllers/tag.controller.ts b/src/modules/tag/presentation/controllers/tag.controller.ts
+new file mode 100644
+index 0000000..75c5d71
+--- /dev/null
++++ b/src/modules/tag/presentation/controllers/tag.controller.ts
+@@ -0,0 +1,98 @@
++import { Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from "@nestjs/common";
++import { CreateTagUseCase } from "../../application/use-cases/create-tag.use-case.js";
++import { UpdateTagUseCase } from "../../application/use-cases/update-tag.use-case.js";
++import { ListTagsUseCase } from "../../application/use-cases/list-tags.use-case.js";
++import { DeleteTagUseCase } from "../../application/use-cases/delete-tag.use-case.js";
++import { GetTagByIdUseCase } from "../../application/use-cases/get-tag-by-id.use-case.js";
++import { AuthGuard } from "src/modules/auth/auth.guard.js";
++import { CreateTagDto } from "../dtos/create-tag.dto.js";
++import { TagResponseDto } from "../dtos/tag-response.dto.js";
++import { NomDejaUtilise } from "../../domain/errors/nom-deja-utilise.error.js";
++import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
++import { UpdateTagDto } from "../dtos/update-tag.dto.js";
++
++@Controller('tags')
++export class TagController {
++    constructor(
++        private readonly createTagUseCase: CreateTagUseCase,
++        private readonly updateTagUseCase: UpdateTagUseCase,
++        private readonly listTagUseCase: ListTagsUseCase,
++        private readonly getTagByIduseCase: GetTagByIdUseCase,
++        private readonly deleteTaguseCase: DeleteTagUseCase
++    ) {}
++
++    @Post()
++    @UseGuards(AuthGuard)
++    @HttpCode(HttpStatus.CREATED)
++    async create(@Body()dto: CreateTagDto): Promise<TagResponseDto> {
++        try {
++            const tag = await this.createTagUseCase.execute({
++                nom: dto.nom,
++                type: dto.type
++            });
++
++            return TagResponseDto.fromDomain(tag);
++        } catch(error) {
++            if(error instanceof NomDejaUtilise) {
++                throw new ConflictException(error.name);
++            }
++            throw error;
++        }
++    }
++
++    @Get()
++    async list(): Promise<TagResponseDto[]> {
++        const rows = await this.listTagUseCase.execute();
++
++        return rows.map(TagResponseDto.fromDomain);
++    }
++
++    @Get('/:id')
++    async getById(@Param('id', ParseUUIDPipe)id: string): Promise<TagResponseDto> {
++        try {
++            const tag = await this.getTagByIduseCase.execute(id);
++            return TagResponseDto.fromDomain(tag);
++        } catch(error) {
++            if(error instanceof TagNonTrouve) {
++                throw new NotFoundException(error.message);
++            }
++            throw error;
++        }
++    }
++
++    @Put('/:id')
++    @UseGuards(AuthGuard)
++    async update(@Param('id')id: string, @Body()dto: UpdateTagDto): Promise<TagResponseDto> {
++        try {
++            const tag = await this.updateTagUseCase.execute({
++                id: id,
++                nom: dto.nom,
++                type: dto.type
++            });
++
++            return TagResponseDto.fromDomain(tag);
++        } catch(error) {
++            if(error instanceof TagNonTrouve) {
++                throw new NotFoundException(error.message);
++            }
++            if(error instanceof NomDejaUtilise) {
++                throw new ConflictException(error.name);
++            }
++            throw error;
++        }
++    }
++
++    @Delete('/:id')
++    @UseGuards(AuthGuard)
++    @HttpCode(HttpStatus.NO_CONTENT)
++    async delete(@Param('id', ParseUUIDPipe)id: string): Promise<void> {
++        try {
++            await this.deleteTaguseCase.execute(id);
++        } catch(error) {
++            if(error instanceof TagNonTrouve) {
++                throw new NotFoundException(error.message);
++            }
++            throw error;
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/presentation/dtos/create-tag.dto.ts b/src/modules/tag/presentation/dtos/create-tag.dto.ts
+new file mode 100644
+index 0000000..f960586
+--- /dev/null
++++ b/src/modules/tag/presentation/dtos/create-tag.dto.ts
+@@ -0,0 +1,12 @@
++import { IsEnum, IsNotEmpty, IsString } from "class-validator";
++import { TagTypeEnum } from "../../domain/value-object/tag-type.value-object.js";
++
++export class CreateTagDto {
++    @IsNotEmpty()
++    @IsString()
++    nom!: string;
++
++    @IsNotEmpty()
++    @IsEnum(TagTypeEnum)
++    type!: TagTypeEnum
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/presentation/dtos/tag-response.dto.ts b/src/modules/tag/presentation/dtos/tag-response.dto.ts
+new file mode 100644
+index 0000000..fed16db
+--- /dev/null
++++ b/src/modules/tag/presentation/dtos/tag-response.dto.ts
+@@ -0,0 +1,17 @@
++import { Tag } from "../../domain/entity/tag.entity.js";
++import { TagTypeEnum } from "../../domain/value-object/tag-type.value-object.js";
++
++export class TagResponseDto {
++    private id!: string;
++    private nom!: string;
++    private type!: TagTypeEnum;
++
++    static fromDomain(tag: Tag): TagResponseDto {
++        const dto = new TagResponseDto();
++        dto.id = tag.id.toString();
++        dto.nom = tag.nom;
++        dto.type = tag.type.value;
++
++        return dto;
++    }
++}
+\ No newline at end of file
+diff --git a/src/modules/tag/presentation/dtos/update-tag.dto.ts b/src/modules/tag/presentation/dtos/update-tag.dto.ts
+new file mode 100644
+index 0000000..99f7522
+--- /dev/null
++++ b/src/modules/tag/presentation/dtos/update-tag.dto.ts
+@@ -0,0 +1,12 @@
++import { IsEnum, IsNotEmpty, IsString } from "class-validator";
++import { TagTypeEnum } from "../../domain/value-object/tag-type.value-object.js";
++
++export class UpdateTagDto {
++    @IsNotEmpty()
++    @IsString()
++    nom!: string;
++
++    @IsNotEmpty()
++    @IsEnum(TagTypeEnum)
++    type!: TagTypeEnum
++}
+\ No newline at end of file
