@@ -4,6 +4,7 @@ import { TagRepository } from "../../domain/repository/tag.repository.js";
 import { Tag } from "../../domain/entity/tag.entity.js";
 import { TagMapper } from "../mappers/tag.mappers.js";
 import { handleUniqueConstraintError } from "../errors/tag-nom-unique-error.handler.js";
+import { handleTagEnUsageError } from "../errors/tag-en-usage-error-handler.js";
 import { TagId } from "../../domain/value-object/tag-id.value-object.js";
 
 @Injectable()
@@ -46,8 +47,13 @@ export class PrismaTagRepository implements TagRepository {
     }
 
     async delete(tagId: TagId): Promise<void> {
-        await this.prisma.tag.delete({
-            where: {id: tagId.toString()}
-        });
+        try {
+            await this.prisma.tag.delete({
+                where: {id: tagId.toString()}
+            });
+        } catch (error) {
+            handleTagEnUsageError(error, tagId.toString());
+            throw error;
+        }
     }
 }

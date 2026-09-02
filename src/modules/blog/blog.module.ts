@@ -17,8 +17,10 @@ import { UpdateCategorieUseCase } from './application/use-cases/update-categorie
 import { GetCategorieBySlugUseCase } from './application/use-cases/get-categorie-by-slug.use-case.js';
 import { ListCategorieUseCase } from './application/use-cases/list-categories.use-case.js';
 import { DeleteCategorieUseCase } from './application/use-cases/delete-categorie.use-case.js';
+import { TagModule } from '../tag/tag.module.js';
 
 @Module({
+  imports: [TagModule],
   controllers: [CategorieController, ArticleController],
   providers: [
     { provide: ARTICLE_REPOSITORY, useClass: PrismaArticleRepository },

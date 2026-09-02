@@ -7,9 +7,10 @@ import { GetTagByIdUseCase } from "../../application/use-cases/get-tag-by-id.use
 import { AuthGuard } from "src/modules/auth/auth.guard.js";
 import { CreateTagDto } from "../dtos/create-tag.dto.js";
 import { TagResponseDto } from "../dtos/tag-response.dto.js";
-import { NomDejaUtilise } from "../../domain/errors/nom-deja-utilise.error.js";
-import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
+import { NomDejaUtiliseError } from "../../domain/errors/nom-deja-utilise.error.js";
+import { TagIntrouvableError } from "../../domain/errors/tag-introuvable.error.js";
 import { UpdateTagDto } from "../dtos/update-tag.dto.js";
+import { TagEnUsageError } from "../../domain/errors/tag-en-usage.error.js";
 
 @Controller('tags')
 export class TagController {
@@ -33,7 +34,7 @@ export class TagController {
 
             return TagResponseDto.fromDomain(tag);
         } catch(error) {
-            if(error instanceof NomDejaUtilise) {
+            if(error instanceof NomDejaUtiliseError) {
                 throw new ConflictException(error.message);
             }
             throw error;
@@ -53,7 +54,7 @@ export class TagController {
             const tag = await this.getTagByIduseCase.execute(id);
             return TagResponseDto.fromDomain(tag);
         } catch(error) {
-            if(error instanceof TagNonTrouve) {
+            if(error instanceof TagIntrouvableError) {
                 throw new NotFoundException(error.message);
             }
             throw error;
@@ -72,10 +73,10 @@ export class TagController {
 
             return TagResponseDto.fromDomain(tag);
         } catch(error) {
-            if(error instanceof TagNonTrouve) {
+            if(error instanceof TagIntrouvableError) {
                 throw new NotFoundException(error.message);
             }
-            if(error instanceof NomDejaUtilise) {
+            if(error instanceof NomDejaUtiliseError) {
                 throw new ConflictException(error.message);
             }
             throw error;
@@ -89,8 +90,11 @@ export class TagController {
         try {
             await this.deleteTaguseCase.execute(id);
         } catch(error) {
-            if(error instanceof TagNonTrouve) {
+            if(error instanceof TagIntrouvableError) {
                 throw new NotFoundException(error.message);
+            }
+            if(error instanceof TagEnUsageError) {
+                throw new ConflictException(error.message);
             }
             throw error;
         }

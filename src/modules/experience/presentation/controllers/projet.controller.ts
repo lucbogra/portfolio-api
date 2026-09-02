@@ -13,6 +13,15 @@ import { ExperienceIntrouvableError } from "../../domain/errors/experience-intro
 import { AuthGuard } from "src/modules/auth/auth.guard.js";
 import { ListProjetsAutonomesUseCase } from "../../application/use-cases/list-projets-autonomes.use-case.js";
 import { ListProjetsByExperienceUseCase } from "../../application/use-cases/list-projets-by-experience.use-case.js";
+import { AttachTagDto } from "../dtos/attach-tag.dto.js";
+import { AttachTagUseCase } from "src/modules/tag/application/use-cases/attach-tag.use-case.js";
+import { DetachTagUseCase } from "src/modules/tag/application/use-cases/detach-tag.use-case.js";
+import { ListTagsForEntityUseCase } from "src/modules/tag/application/use-cases/list-tags-for-entity.use-case.js";
+import { TaggableTypeEnum } from "src/modules/tag/domain/value-object/taggable-type.value-object.js";
+import { TagIntrouvableError } from "src/modules/tag/domain/errors/tag-introuvable.error.js";
+import { TagDejaAttacheError } from "src/modules/tag/domain/errors/tag-deja-attache.error.js";
+import { AttachementIntrouvableError } from "src/modules/tag/domain/errors/attachement-introuvable.error.js";
+import { TagResponseDto } from "src/modules/tag/presentation/dtos/tag-response.dto.js";
 
 @Controller('projets')
 export class ProjetController {
@@ -23,7 +32,10 @@ export class ProjetController {
         private readonly updateProjetUseCase: UpdateProjetUseCase,
         private readonly deleteProjetUseCase: DeleteProjetUseCase,
         private readonly listProjetsAutonomesUseCase: ListProjetsAutonomesUseCase,
-        private readonly listProjetsByExperienceuseCase: ListProjetsByExperienceUseCase
+        private readonly listProjetsByExperienceuseCase: ListProjetsByExperienceUseCase,
+        private readonly attachTagUseCase: AttachTagUseCase,
+        private readonly detachTagUseCase: DetachTagUseCase,
+        private readonly listTagForEntityUseCase: ListTagsForEntityUseCase
     ) {}
 
     @Post()
@@ -129,5 +141,50 @@ export class ProjetController {
             }
             throw error;
         }
+    }
+
+    @Post('/:id/tags')
+    @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.CREATED)
+    async attachTag(@Param('id', ParseUUIDPipe)id: string, @Body()dto: AttachTagDto): Promise<void> {
+        try {
+            await this.attachTagUseCase.execute({
+                taggableId: id,
+                taggableType: TaggableTypeEnum.PROJET,
+                tagId: dto.tagId
+            });
+        } catch(error) {
+            if(error instanceof TagDejaAttacheError) {
+                throw new ConflictException(error.message);
+            }
+            if(error instanceof TagIntrouvableError) {
+                throw new NotFoundException(error.message);
+            }
+            throw error;
+        }
+    }
+
+    @Delete('/:id/tags/:tagId')
+    @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async detachTag(@Param('id', ParseUUIDPipe)id: string, @Param('tagId', ParseUUIDPipe)tagId: string): Promise<void> {
+        try {
+            await this.detachTagUseCase.execute({
+                taggableId: id,
+                taggableType: TaggableTypeEnum.PROJET,
+                tagId: tagId
+            });
+        } catch(error) {
+            if(error instanceof AttachementIntrouvableError) {
+                throw new BadRequestException(error.message);
+            }
+        }
+    }
+
+    @Get('/:id/tags')
+    async listTags(@Param('id', ParseUUIDPipe)id: string): Promise<TagResponseDto[]> {
+        const rows = await this.listTagForEntityUseCase.execute(TaggableTypeEnum.PROJET, id);
+
+        return rows.map(TagResponseDto.fromDomain);
     }
 }

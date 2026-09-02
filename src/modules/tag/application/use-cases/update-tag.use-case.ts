@@ -3,7 +3,7 @@ import { TAG_REPOSITORY, type TagRepository } from "../../domain/repository/tag.
 import { TagType, TagTypeEnum } from "../../domain/value-object/tag-type.value-object.js";
 import { Tag } from "../../domain/entity/tag.entity.js";
 import { TagId } from "../../domain/value-object/tag-id.value-object.js";
-import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
+import { TagIntrouvableError } from "../../domain/errors/tag-introuvable.error.js";
 
 export interface UpdateTagInput {
     id: string,
@@ -23,7 +23,7 @@ export class UpdateTagUseCase {
         const tag = await this.tagRepository.findById(tagId);
 
         if(!tag) {
-            throw new TagNonTrouve(input.id);
+            throw new TagIntrouvableError(input.id);
         }
 
         tag.update({

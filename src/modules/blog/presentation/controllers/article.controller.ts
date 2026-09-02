@@ -15,6 +15,15 @@ import { SwitchArticleStatutUseCase } from "../../application/use-cases/switch-a
 import { SwitchArticleStatutDto } from "../dtos/switch-article-statut.dto.js";
 import { TransitionStatutInvalideError } from "../../domain/errors/transition-statut-invalide.error.js";
 import { GetArticlesByCategorieUseCase } from "../../application/use-cases/get-articles-by-categorie.use-case.js";
+import { AttachTagUseCase } from "src/modules/tag/application/use-cases/attach-tag.use-case.js";
+import { DetachTagUseCase } from "src/modules/tag/application/use-cases/detach-tag.use-case.js";
+import { ListTagsForEntityUseCase } from "src/modules/tag/application/use-cases/list-tags-for-entity.use-case.js";
+import { TaggableTypeEnum } from "src/modules/tag/domain/value-object/taggable-type.value-object.js";
+import { AttachTagDto } from "../dtos/attach-tag.dto.js";
+import { TagIntrouvableError } from "src/modules/tag/domain/errors/tag-introuvable.error.js";
+import { TagDejaAttacheError } from "src/modules/tag/domain/errors/tag-deja-attache.error.js";
+import { AttachementIntrouvableError } from "src/modules/tag/domain/errors/attachement-introuvable.error.js";
+import { TagResponseDto } from "src/modules/tag/presentation/dtos/tag-response.dto.js";
 
 @Controller('articles')
 export class ArticleController {
@@ -25,7 +34,10 @@ export class ArticleController {
         private readonly getArticleBySlugUseCase: GetArticleBySlugUseCase,
         private readonly deleteArticleUseCase: DeleteArticleUseCase,
         private readonly switchArticleStatutUseCase: SwitchArticleStatutUseCase,
-        private readonly getArticlesByCategorieUseCase: GetArticlesByCategorieUseCase
+        private readonly getArticlesByCategorieUseCase: GetArticlesByCategorieUseCase,
+        private readonly attachTagUseCase: AttachTagUseCase,
+        private readonly detachTagUseCase: DetachTagUseCase,
+        private readonly listTagsForEntityUseCase: ListTagsForEntityUseCase,
     ) {}
 
     @Post()
@@ -139,4 +151,53 @@ export class ArticleController {
             throw error;
         }
     }
+
+    @Post('/:id/tags')
+    @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.CREATED)
+    async attachTag(@Param('id', ParseUUIDPipe) id: string, @Body() dto: AttachTagDto): Promise<void> {
+        try {
+            await this.attachTagUseCase.execute({
+                tagId: dto.tagId,
+                taggableType: TaggableTypeEnum.ARTICLE,
+                taggableId: id,
+            });
+        } catch (error) {
+            if (error instanceof TagIntrouvableError) {
+                throw new BadRequestException(error.message);
+            }
+            if (error instanceof TagDejaAttacheError) {
+                throw new ConflictException(error.message);
+            }
+            throw error;
+        }
+    }
+
+    @Delete('/:id/tags/:tagId')
+    @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async detachTag(@Param('id', ParseUUIDPipe) id: string,@Param('tagId', ParseUUIDPipe) tagId: string): Promise<void> {
+        try {
+            await this.detachTagUseCase.execute({
+                tagId,
+                taggableType: TaggableTypeEnum.ARTICLE,
+                taggableId: id,
+            });
+        } catch (error) {
+            if (error instanceof AttachementIntrouvableError) {
+                throw new NotFoundException(error.message);
+            }
+            throw error;
+        }
+    }
+
+    @Get('/:id/tags')
+    async listTags(@Param('id', ParseUUIDPipe) id: string): Promise<TagResponseDto[]> {
+        const tags = await this.listTagsForEntityUseCase.execute(
+            TaggableTypeEnum.EXPERIENCE,
+            id,
+        );
+        return tags.map(TagResponseDto.fromDomain);
+    }
+
 }

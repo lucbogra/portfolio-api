@@ -17,8 +17,10 @@ import { UpdateProjetUseCase } from './application/use-cases/update-projet.use-c
 import { DeleteProjetUseCase } from './application/use-cases/delete-projet.use-case.js';
 import { ListProjetsAutonomesUseCase } from './application/use-cases/list-projets-autonomes.use-case.js';
 import { ListProjetsByExperienceUseCase } from './application/use-cases/list-projets-by-experience.use-case.js';
+import { TagModule } from '../tag/tag.module.js';
 
 @Module({
+  imports: [TagModule],
   controllers: [ExperienceController, ProjetController],
   providers: [
     { provide: EXPERIENCE_REPOSITORY, useClass: PrismaExperienceRepository },

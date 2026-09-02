@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { TAG_REPOSITORY, type TagRepository } from "../../domain/repository/tag.repository.js";
 import { TagId } from "../../domain/value-object/tag-id.value-object.js";
-import { TagNonTrouve } from "../../domain/errors/tag-non-trouve.error.js";
+import { TagIntrouvableError } from "../../domain/errors/tag-introuvable.error.js";
 
 @Injectable()
 export class DeleteTagUseCase {
@@ -15,7 +15,7 @@ export class DeleteTagUseCase {
         const tag = await this.tagRepository.findById(tagId);
 
         if(!tag) {
-            throw new TagNonTrouve(id);
+            throw new TagIntrouvableError(id);
         }
 
         await this.tagRepository.delete(tagId);
