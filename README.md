@@ -1,98 +1,163 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Portfolio API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API backend du site portfolio personnel — construite avec **NestJS**, **Prisma 7** et **PostgreSQL**, selon les principes de l'**architecture hexagonale** (ports & adapters) et du **Domain-Driven Design**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Ce projet sert à la fois de backend de production pour le portfolio, et de terrain d'apprentissage/démonstration de compétences en architecture logicielle backend.
 
-## Description
+## Stack technique
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Framework** : NestJS 10+ (TypeScript, ESM natif)
+- **ORM** : Prisma 7, avec driver adapter (`@prisma/adapter-pg`)
+- **Base de données** : PostgreSQL
+- **Authentification** : JWT (implémentation maison, sans Passport)
+- **Validation** : class-validator / class-transformer
+- **Tests** : Jest (unitaires) + Supertest (end-to-end)
 
-## Project setup
+## Architecture
 
-```bash
-$ npm install
+Le projet suit une **architecture hexagonale** organisée **par feature/bounded context**, pas par couche technique globale :
+
+```
+src/
+  modules/
+    experience/
+      domain/            → entités, value objects, interfaces de repository, erreurs métier
+      application/       → use cases (orchestration, sans logique technique)
+      infrastructure/    → implémentations Prisma, mappers, gestion d'erreurs DB
+      presentation/      → controllers, DTOs
+    blog/                → Article, Categorie (même structure)
+    tag/                 → Tag + système de tagging polymorphe
+    profil/              → Profil (singleton)
+    auth/                → authentification JWT
+  shared/
+    domain/              → value objects et erreurs réutilisés (Slug, Periode, Lien, Telephone)
+    infrastructure/      → PrismaService, gestion d'erreurs Prisma génériques
+  app.module.ts
 ```
 
-## Compile and run the project
+**Principe directeur** : le domaine ne dépend jamais de l'infrastructure. Chaque agrégat définit ses interfaces de repository (les *ports*) ; les implémentations Prisma (les *adapters*) vivent en périphérie et implémentent ces interfaces.
+
+### Agrégats du domaine
+
+| Agrégat | Description |
+|---|---|
+| **Experience** | Expériences professionnelles (freelance, CDI, consultant) |
+| **Projet** | Projets techniques, rattachés à une expérience ou autonomes |
+| **Article** | Articles de blog, avec cycle de vie (brouillon → publié → inactif) |
+| **Categorie** | Catégories du blog |
+| **Profil** | Profil public (singleton) |
+| **Tag** | Étiquettes réutilisables (stack technique, soft skills), attachables à Experience/Projet/Article via une relation polymorphe |
+
+## Prérequis
+
+- Node.js 22+
+- npm
+- Prisma CLI (`npx prisma`)
+
+## Installation
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### Base de données locale
+
+Ce projet utilise `prisma dev` (Postgres local géré par Prisma, sans Docker) :
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npx prisma dev --name default
 ```
 
-## Deployment
+Récupère l'URL de connexion **directe** (pas l'URL proxy `prisma+postgres://`) affichée au démarrage, et renseigne-la dans `.env` :
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```env
+DATABASE_URL="postgres://postgres:postgres@localhost:PORT/DBNAME?sslmode=disable&..."
+SHADOW_DATABASE_URL="postgres://postgres:postgres@localhost:SHADOW_PORT/DBNAME?sslmode=disable&..."
+JWT_SECRET="..."
+ADMIN_USERNAME="..."
+ADMIN_PASSWORD_HASH="..."
+```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+⚠️ Le driver adapter (`@prisma/adapter-pg`) utilisé par ce projet nécessite une URL Postgres **directe** — jamais le protocole proxy `prisma+postgres://`.
+
+Génère le hash du mot de passe admin :
+```bash
+node -e "const bcrypt = require('bcrypt'); bcrypt.hash('TON_MOT_DE_PASSE', 10).then(console.log)"
+```
+
+### Migrations
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npx prisma migrate dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Lancer le projet
 
-## Resources
+```bash
+npm run start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+L'API est accessible sur `http://localhost:3000`.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Authentification
 
-## Support
+Un seul compte administrateur (pas de gestion multi-utilisateurs). Les routes de lecture (`GET`) sont publiques ; les routes d'écriture (`POST`/`PUT`/`DELETE`) nécessitent un token JWT.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+POST /auth/login
+{ "username": "...", "password": "..." }
+```
 
-## Stay in touch
+Le token retourné s'utilise ensuite dans le header :
+```
+Authorization: Bearer <token>
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Aperçu des endpoints
 
-## License
+| Ressource | Routes principales |
+|---|---|
+| Experiences | `GET /experiences`, `GET /experiences/:slug`, `POST/PUT/DELETE /experiences/:id` |
+| Projets | `GET /projets`, `GET /projets/autonomes`, `GET /projets/experience/:id`, `GET /projets/:slug`, `POST/PUT/DELETE` |
+| Articles | `GET /articles`, `GET /articles/:slug`, `GET /articles/categorie/:id`, `PUT /articles/statut/:id`, `POST/PUT/DELETE` |
+| Catégories | `GET /categories`, `GET /categories/:slug`, `POST/PUT/DELETE` |
+| Profil | `GET /profil`, `PUT /profil` (upsert) |
+| Tags | `GET /tags`, `GET /tags/:id`, `POST/PUT/DELETE` |
+| Tagging | `POST/DELETE /{experiences|projets|articles}/:id/tags`, `GET /{...}/:id/tags` |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Tests
+
+### Tests unitaires (domaine)
+
+```bash
+npm test
+```
+
+### Tests end-to-end
+
+Nécessite une base de données de test dédiée, isolée de la base de développement :
+
+```bash
+npx prisma dev --name test
+```
+
+Renseigne `.env.test` avec l'URL de cette instance (`DATABASE_URL`, `SHADOW_DATABASE_URL`), ainsi que :
+```env
+ADMIN_USERNAME="..."
+ADMIN_PASSWORD_HASH="..."
+ADMIN_PASSWORD_PLAIN="..."   # mot de passe en clair, uniquement pour les tests
+JWT_SECRET="..."
+```
+
+```bash
+npx dotenv -e .env.test -- npx prisma migrate deploy
+npm run test:e2e
+```
+
+## Choix architecturaux notables
+
+- **IDs typés par Value Object** (`ExperienceId`, `ProjetId`...) plutôt que des `string` bruts — protège contre le mélange d'identifiants à la compilation.
+- **Value Objects** pour tout concept avec règle de validation ou de transition (`Slug`, `Periode`, `StatutArticle`...) — évite la *primitive obsession*.
+- **Agrégats indépendants référencés par id** : `Projet` peut exister sans `Experience` (side-projects) — deux agrégats séparés, jamais imbriqués, cohérent avec les principes DDD sur les invariants cross-agrégats.
+- **Tagging polymorphe découplé** : le système de tags ne modifie ni ne dépend des entités `Experience`/`Projet`/`Article` — une table de jointure polymorphe (`Taggable`) gérée par un repository dédié, évitant toute duplication de logique.
+- **Traduction systématique des erreurs Prisma** (contraintes uniques, clés étrangères) en erreurs de domaine explicites, elles-mêmes traduites en codes HTTP appropriés au niveau des controllers — le domaine ne connaît jamais Prisma.
