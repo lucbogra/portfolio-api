@@ -14,9 +14,12 @@ export interface CreateProjetInput {
     dateDebut: Date,
     dateFin: Date|null,
     details: string,
+    resume: string|null,
     github: string|null,
     image: string|null,
     lienDemo: string|null,
+    enAvant: boolean,
+    ordreAffichage: number|null,
 }
 
 @Injectable()
@@ -33,9 +36,12 @@ export class CreateProjetUseCase {
             nom: input.nom,
             periode: Periode.create(input.dateDebut, input.dateFin),
             details: input.details,
+            resume: input.resume,
             github: input.github ? Lien.create(input.github) : null,
             image: input.image,
             lienDemo: input.lienDemo ? Lien.create(input.lienDemo) : null,
+            enAvant: input.enAvant,
+            ordreAffichage: input.ordreAffichage,
         });
 
         await this.projetRepository.save(projet);

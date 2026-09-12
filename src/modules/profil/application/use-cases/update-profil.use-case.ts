@@ -13,6 +13,7 @@ export interface UpdateProfilInput {
     pays: string;
     ville: string;
     adresse: string | null;
+    disponible: boolean;
 }
 
 @Injectable()
@@ -34,6 +35,7 @@ export class UpdateProfilUseCase {
             pays: input.pays,
             ville: input.ville,
             adresse: input.adresse,
+            disponible: input.disponible,
         };
 
         if (!profil) {

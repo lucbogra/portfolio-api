@@ -11,6 +11,7 @@ export interface CreateProfilParams {
   pays: string;
   ville: string;
   adresse: string | null;
+  disponible: boolean;
 }
 
 export interface UpdateProfilParams {
@@ -22,6 +23,7 @@ export interface UpdateProfilParams {
   pays: string;
   ville: string;
   adresse: string | null;
+  disponible: boolean;
 }
 
 export class Profil {
@@ -35,6 +37,7 @@ export class Profil {
     private _pays: string,
     private _ville: string,
     private _adresse: string | null,
+    private _disponible: boolean,
   ) {}
 
   static create(params: CreateProfilParams): Profil {
@@ -48,6 +51,7 @@ export class Profil {
       params.pays,
       params.ville,
       params.adresse,
+      params.disponible,
     );
   }
 
@@ -87,6 +91,10 @@ export class Profil {
     return this._adresse;
   }
 
+  get disponible(): boolean {
+    return this._disponible;
+  }
+
   update(params: UpdateProfilParams): void {
     this._titre = params.titre;
     this._description = params.description;
@@ -95,6 +103,7 @@ export class Profil {
     this._pays = params.pays;
     this._ville = params.ville;
     this._linkedin = params.linkedin;
-   this._github = params.github;
+    this._github = params.github;
+    this._disponible = params.disponible;
   }
 }

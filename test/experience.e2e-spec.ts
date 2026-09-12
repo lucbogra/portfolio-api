@@ -31,6 +31,8 @@ describe('ExperienceController (e2e)', () => {
   });
 
   afterEach(async () => {
+    await prisma.taggable.deleteMany();
+    await prisma.tag.deleteMany();
     await prisma.experience.deleteMany();
   });
 
@@ -119,6 +121,57 @@ describe('ExperienceController (e2e)', () => {
       const response = await request(app.getHttpServer()).get('/experiences');
 
       expect(response.status).toBe(200);
+    });
+
+    it('inclut les tags de chaque expérience, tableau vide si aucun tag', async () => {
+      const sansTag = await request(app.getHttpServer())
+        .post('/experiences')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          slug: 'experience-sans-tag',
+          dateDebut: '2024-01-01',
+          titre: 'Titre sans tag',
+          entreprise: 'Entreprise',
+          contexte: 'freelance',
+          description: 'Description',
+        });
+
+      const avecTag = await request(app.getHttpServer())
+        .post('/experiences')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          slug: 'experience-avec-tag',
+          dateDebut: '2024-01-01',
+          titre: 'Titre avec tag',
+          entreprise: 'Entreprise',
+          contexte: 'freelance',
+          description: 'Description',
+        });
+
+      const tag = await request(app.getHttpServer())
+        .post('/tags')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ nom: 'Tag e2e experience', type: 'stack' });
+
+      await request(app.getHttpServer())
+        .post(`/experiences/${avecTag.body.id}/tags`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ tagId: tag.body.id });
+
+      const response = await request(app.getHttpServer()).get('/experiences');
+
+      const foundAvecTag = response.body.find((e: { id: string }) => e.id === avecTag.body.id);
+      const foundSansTag = response.body.find((e: { id: string }) => e.id === sansTag.body.id);
+
+      expect(foundAvecTag).toBeDefined();
+      expect(foundAvecTag.tags).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: tag.body.id, nom: 'Tag e2e experience' }),
+        ]),
+      );
+
+      expect(foundSansTag).toBeDefined();
+      expect(foundSansTag.tags).toEqual([]);
     });
   });
 

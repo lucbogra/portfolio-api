@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
 
 export class UpdateProfilDto {
     @IsString()
@@ -32,4 +32,8 @@ export class UpdateProfilDto {
     @IsOptional()
     @IsString()
     adresse?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    disponible?: boolean;
 }

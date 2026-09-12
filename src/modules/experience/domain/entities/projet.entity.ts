@@ -3,6 +3,7 @@ import { ExperienceId } from 'src/modules/experience/domain/value-objects/experi
 import { Periode } from 'src/shared/domain/value-objects/periode/periode.value-object.js';
 import { Lien } from 'src/shared/domain/value-objects/lien/lien.value-object.js';
 import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js';
+import { ProjetResumeRequisError } from 'src/modules/experience/domain/errors/projet-resume-requis.error.js';
 
 export interface CreateProjetParams {
   id: ProjetId;
@@ -13,7 +14,10 @@ export interface CreateProjetParams {
   periode: Periode;
   github: Lien | null;
   details: string;
+  resume: string | null;
   lienDemo: Lien | null;
+  enAvant: boolean;
+  ordreAffichage: number | null;
 }
 
 export interface UpdateProjetParams {
@@ -23,7 +27,10 @@ export interface UpdateProjetParams {
   periode: Periode;
   github: Lien | null;
   details: string;
+  resume: string | null;
   lienDemo: Lien | null;
+  enAvant: boolean;
+  ordreAffichage: number | null;
 }
 
 export class Projet {
@@ -36,10 +43,22 @@ export class Projet {
     private _periode: Periode,
     private _github: Lien | null,
     private _details: string,
+    private _resume: string | null,
     private _lienDemo: Lien | null,
+    private _enAvant: boolean,
+    private _ordreAffichage: number | null,
   ) {}
 
   static create(params: CreateProjetParams): Projet {
+    Projet.verifierResumeRequis(params.enAvant, params.resume);
+
+    return Projet.reconstitute(params);
+  }
+
+  // Hydratation depuis la persistance : ne revérifie pas l'invariante, pour ne
+  // pas empêcher de relire un projet existant dont l'état serait antérieur à
+  // l'introduction de la règle (le champ resume est apparu après coup).
+  static reconstitute(params: CreateProjetParams): Projet {
     return new Projet(
       params.id,
       params.experienceId,
@@ -49,18 +68,35 @@ export class Projet {
       params.periode,
       params.github,
       params.details,
+      params.resume,
       params.lienDemo,
+      params.enAvant,
+      params.ordreAffichage,
     );
   }
 
   update(params: UpdateProjetParams): void {
-    this._experienceId  = params.experienceId;
-    this._nom           = params.nom;
-    this._image         = params.image;
-    this._periode       = params.periode;
-    this._github        = params.github;
-    this._details       = params.details;
-    this._lienDemo      = params.lienDemo;
+    Projet.verifierResumeRequis(params.enAvant, params.resume);
+
+    this._experienceId   = params.experienceId;
+    this._nom            = params.nom;
+    this._image          = params.image;
+    this._periode        = params.periode;
+    this._github         = params.github;
+    this._details        = params.details;
+    this._resume         = params.resume;
+    this._lienDemo       = params.lienDemo;
+    this._enAvant        = params.enAvant;
+    this._ordreAffichage = params.ordreAffichage;
+  }
+
+  private static verifierResumeRequis(
+    enAvant: boolean,
+    resume: string | null,
+  ): void {
+    if (enAvant && (!resume || resume.trim().length === 0)) {
+      throw new ProjetResumeRequisError();
+    }
   }
 
   get id(): ProjetId {
@@ -95,7 +131,19 @@ export class Projet {
     return this._details;
   }
 
+  get resume(): string | null {
+    return this._resume;
+  }
+
   get lienDemo(): Lien | null {
     return this._lienDemo;
+  }
+
+  get enAvant(): boolean {
+    return this._enAvant;
+  }
+
+  get ordreAffichage(): number | null {
+    return this._ordreAffichage;
   }
 }

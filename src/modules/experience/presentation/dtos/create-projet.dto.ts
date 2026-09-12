@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsOptional, IsString, IsUrl, Length } from "class-validator";
+import { IsBoolean, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl, Length, MaxLength, ValidateIf } from "class-validator";
 
 export class CreateProjetDto{
     @IsString()
@@ -26,6 +26,12 @@ export class CreateProjetDto{
     @IsNotEmpty()
     details!: string;
 
+    @ValidateIf((o: CreateProjetDto) => o.enAvant === true)
+    @IsNotEmpty()
+    @IsString()
+    @MaxLength(200)
+    resume?: string;
+
     @IsOptional()
     @IsString()
     image?: string;
@@ -37,4 +43,12 @@ export class CreateProjetDto{
     @IsOptional()
     @IsUrl()
     lienDemo?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    enAvant?: boolean;
+
+    @IsOptional()
+    @IsInt()
+    ordreAffichage?: number;
 }

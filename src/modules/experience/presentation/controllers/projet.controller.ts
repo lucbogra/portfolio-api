@@ -3,13 +3,16 @@ import { CreateProjetUseCase } from "../../application/use-cases/create-projet.u
 import { GetProjetBySlugUseCase } from "../../application/use-cases/get-projet-by-slug.use-case.js";
 import { UpdateProjetUseCase } from "../../application/use-cases/update-projet.use-case.js";
 import { DeleteProjetUseCase } from "../../application/use-cases/delete-projet.use-case.js";
-import { ListProjetsUseCase } from "../../application/use-cases/list-projets.use-case.js";
+import { ListProjetsAvecExperienceUseCase } from "../../application/use-cases/list-projets-avec-experience.use-case.js";
+import { ListProjetsSelectionUseCase } from "../../application/use-cases/list-projets-selection.use-case.js";
 import { ProjetResponse } from "../dtos/projet-response.dto.js";
+import { ProjetAvecExperienceResponseDto } from "../dtos/projet-avec-experience-response.dto.js";
 import { CreateProjetDto } from "../dtos/create-projet.dto.js";
 import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
 import { ProjetIntrouvableError } from "../../domain/errors/projet-introuvable.error.js";
 import { UpdateProjetDto } from "../dtos/update-projet.dto.js";
 import { ExperienceIntrouvableError } from "../../domain/errors/experience-introuvable.error.js";
+import { ProjetResumeRequisError } from "../../domain/errors/projet-resume-requis.error.js";
 import { AuthGuard } from "src/modules/auth/auth.guard.js";
 import { ListProjetsAutonomesUseCase } from "../../application/use-cases/list-projets-autonomes.use-case.js";
 import { ListProjetsByExperienceUseCase } from "../../application/use-cases/list-projets-by-experience.use-case.js";
@@ -28,7 +31,8 @@ export class ProjetController {
     constructor(
         private readonly createProjetUseCase: CreateProjetUseCase,
         private readonly getProjetBySlugUseCase: GetProjetBySlugUseCase,
-        private readonly listProjetsUseCase: ListProjetsUseCase,
+        private readonly listProjetsAvecExperienceUseCase: ListProjetsAvecExperienceUseCase,
+        private readonly listProjetsSelectionUseCase: ListProjetsSelectionUseCase,
         private readonly updateProjetUseCase: UpdateProjetUseCase,
         private readonly deleteProjetUseCase: DeleteProjetUseCase,
         private readonly listProjetsAutonomesUseCase: ListProjetsAutonomesUseCase,
@@ -50,9 +54,12 @@ export class ProjetController {
                 dateDebut: new Date(dto.dateDebut),
                 dateFin: dto.dateFin ? new Date(dto.dateFin) : null,
                 details: dto.details,
+                resume: dto.resume ?? null,
                 image: dto.image ?? null,
                 github: dto.github ?? null,
                 lienDemo: dto.lienDemo ?? null,
+                enAvant: dto.enAvant ?? false,
+                ordreAffichage: dto.ordreAffichage ?? null,
             });
 
             return ProjetResponse.fromDomain(projet);
@@ -63,14 +70,24 @@ export class ProjetController {
             if(error instanceof ExperienceIntrouvableError) {
                 throw new BadRequestException(error.message);
             }
+            if(error instanceof ProjetResumeRequisError) {
+                throw new BadRequestException(error.message);
+            }
             throw error;
         }
     }
 
     @Get()
-    async list(): Promise<ProjetResponse[]> {
-        const projets = await this.listProjetsUseCase.execute();
-        return projets.map(ProjetResponse.fromDomain);
+    async list(): Promise<ProjetAvecExperienceResponseDto[]> {
+        const projets = await this.listProjetsAvecExperienceUseCase.execute();
+        return projets.map(ProjetAvecExperienceResponseDto.fromReadModel);
+    }
+
+    // Déclaré avant '/:slug' pour que « selection » ne soit pas capturé comme un slug.
+    @Get('/selection')
+    async getSelection(): Promise<ProjetAvecExperienceResponseDto[]> {
+        const projets = await this.listProjetsSelectionUseCase.execute();
+        return projets.map(ProjetAvecExperienceResponseDto.fromReadModel);
     }
 
     @Get('/autonomes')
@@ -112,9 +129,12 @@ export class ProjetController {
                 dateDebut: new Date(dto.dateDebut),
                 dateFin: dto.dateFin ? new Date(dto.dateFin) : null,
                 details: dto.details,
+                resume: dto.resume,
                 github: dto.github ?? null,
                 image: dto.image,
-                lienDemo: dto.lienDemo ?? null
+                lienDemo: dto.lienDemo ?? null,
+                enAvant: dto.enAvant ?? false,
+                ordreAffichage: dto.ordreAffichage ?? null,
             });
 
             return ProjetResponse.fromDomain(projet);
@@ -123,6 +143,9 @@ export class ProjetController {
                 throw new NotFoundException(error.message);
             }
             if(error instanceof ExperienceIntrouvableError) {
+                throw new BadRequestException(error.message);
+            }
+            if(error instanceof ProjetResumeRequisError) {
                 throw new BadRequestException(error.message);
             }
             throw error;

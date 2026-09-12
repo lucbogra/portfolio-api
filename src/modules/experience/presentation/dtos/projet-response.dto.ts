@@ -10,7 +10,10 @@ export class ProjetResponse {
     dateFin!: Date|null;
     github!: string | null;
     details: string;
+    resume: string | null;
     lienDemo: string | null;
+    enAvant!: boolean;
+    ordreAffichage!: number | null;
 
     static fromDomain(projet: Projet): ProjetResponse {
         const dto = new ProjetResponse();
@@ -22,8 +25,11 @@ export class ProjetResponse {
         dto.dateDebut = projet.periode.dateDebut;
         dto.dateFin = projet.periode.dateFin ?? null;
         dto.details = projet.details;
+        dto.resume = projet.resume;
         dto.github = projet.github?.toString() ?? null;
         dto.lienDemo = projet.lienDemo?.toString() ?? null;
+        dto.enAvant = projet.enAvant;
+        dto.ordreAffichage = projet.ordreAffichage;
 
         return dto;
     }

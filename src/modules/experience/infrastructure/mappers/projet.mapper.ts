@@ -7,8 +7,8 @@ import { Slug } from 'src/shared/domain/value-objects/slug/slug.value-object.js'
 import { Projet as PrismaProjet } from 'src/generated/prisma/client.js';
 
 export class ProjetMapper {
-  static toDomain(raw: PrismaProjet): Projet {    
-    return Projet.create({
+  static toDomain(raw: PrismaProjet): Projet {
+    return Projet.reconstitute({
       id: ProjetId.create(raw.id),
       slug: Slug.create(raw.slug),
       experienceId: raw.experienceId
@@ -17,9 +17,12 @@ export class ProjetMapper {
       nom: raw.nom,
       image: raw.image,
       details: raw.details,
+      resume: raw.resume,
       periode: Periode.create(raw.dateDebut, raw.dateFin),
       github: raw.github ? Lien.create(raw.github) : null,
       lienDemo: raw.lienDemo ? Lien.create(raw.lienDemo) : null,
+      enAvant: raw.enAvant,
+      ordreAffichage: raw.ordreAffichage,
     });
   }
 
@@ -31,10 +34,13 @@ export class ProjetMapper {
       nom: projet.nom,
       image: projet.image,
       details: projet.details,
+      resume: projet.resume,
       dateDebut: projet.periode.dateDebut,
       dateFin: projet.periode.dateFin,
       github: projet.github?.toString() ?? null,
       lienDemo: projet.lienDemo?.toString() ?? null,
+      enAvant: projet.enAvant,
+      ordreAffichage: projet.ordreAffichage,
     };
   }
 }

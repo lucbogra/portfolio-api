@@ -2,10 +2,11 @@ import { BadRequestException, Body, ConflictException, Controller, Delete, Get, 
 import { CreateExperienceInput, CreateExperienceUseCase } from "../../application/use-cases/create-experience.use-case.js";
 import { GetExperienceBySlugUseCase } from "../../application/use-cases/get-experience-by-slug.use-case.js";
 import { UpdateExperienceUseCase } from "../../application/use-cases/update-experience.use-case.js";
-import { ListExperiencesUseCase } from "../../application/use-cases/list-experiences.use-case.js";
+import { ListExperiencesAvecTagsUseCase } from "../../application/use-cases/list-experiences-avec-tags.use-case.js";
 import { DeleteExperienceUseCase } from "../../application/use-cases/delete-experience.use-case.js";
 import { CreateExperienceDto } from "../dtos/create-experience.dto.js";
 import { ExperienceResponseDto } from "../dtos/experience-response.dto.js";
+import { ExperienceAvecTagsResponseDto } from "../dtos/experience-avec-tags-response.dto.js";
 import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise.error.js";
 import { ExperienceIntrouvableError } from "../../domain/errors/experience-introuvable.error.js";
 import { UpdateExperienceDto } from "../dtos/update-experience.dto.js";
@@ -24,7 +25,7 @@ import { TagResponseDto } from "src/modules/tag/presentation/dtos/tag-response.d
 export class ExperienceController {
     constructor(
         private readonly createExperienceUseCase: CreateExperienceUseCase,
-        private readonly listExperiencesUseCase: ListExperiencesUseCase,
+        private readonly listExperiencesAvecTagsUseCase: ListExperiencesAvecTagsUseCase,
         private readonly getExperienceBySlugUseCase: GetExperienceBySlugUseCase,
         private readonly updateExperienceUseCase: UpdateExperienceUseCase,
         private readonly deleteExperienceUseCase: DeleteExperienceUseCase,
@@ -62,9 +63,9 @@ export class ExperienceController {
     }
 
     @Get()
-    async list(): Promise<ExperienceResponseDto[]> {
-        const experiences = await this.listExperiencesUseCase.execute();
-        return experiences.map(ExperienceResponseDto.fromDomain);
+    async list(): Promise<ExperienceAvecTagsResponseDto[]> {
+        const experiences = await this.listExperiencesAvecTagsUseCase.execute();
+        return experiences.map(ExperienceAvecTagsResponseDto.fromReadModel);
     }
 
     @Get('/:slug')

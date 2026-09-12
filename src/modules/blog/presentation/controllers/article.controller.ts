@@ -2,7 +2,9 @@ import { BadRequestException, Body, ConflictException, Controller, Delete, Get, 
 import { CreateArticleUseCase } from "../../application/use-cases/create-article.use-case.js";
 import { UpdateArticleUseCase } from "../../application/use-cases/update-article.use-case.js";
 import { ListArticleUseCase } from "../../application/use-cases/list-articles.use-case.js";
+import { ListArticlesPubliesUseCase } from "../../application/use-cases/list-articles-publies.use-case.js";
 import { GetArticleBySlugUseCase } from "../../application/use-cases/get-article-by-slug.use-case.js";
+import { GetArticlePublieBySlugUseCase } from "../../application/use-cases/get-article-publie-by-slug.use-case.js";
 import { DeleteArticleUseCase } from "../../application/use-cases/delete-article.use-case.js";
 import { AuthGuard } from "src/modules/auth/auth.guard.js";
 import { CreateArticleDto } from "../dtos/create-article.dto.js";
@@ -11,6 +13,7 @@ import { SlugDejaUtiliseError } from "src/shared/domain/errors/slug-deja-utilise
 import { CategorieIntrouvableError } from "../../domain/errors/categorie-introuvable.error.js";
 import { ArticleIntrouvableError } from "../../domain/errors/article-introuvable.error.js";
 import { UpdateArticleDto } from "../dtos/update-article.dto.js";
+import { ArticlePublieResponseDto } from "../dtos/article-publie-response.dto.js";
 import { SwitchArticleStatutUseCase } from "../../application/use-cases/switch-article-statut.use-case.js";
 import { SwitchArticleStatutDto } from "../dtos/switch-article-statut.dto.js";
 import { TransitionStatutInvalideError } from "../../domain/errors/transition-statut-invalide.error.js";
@@ -31,7 +34,9 @@ export class ArticleController {
         private readonly createArticleUseCase: CreateArticleUseCase,
         private readonly updateArticleUseCase: UpdateArticleUseCase,
         private readonly listArticleUseCase: ListArticleUseCase,
+        private readonly listArticlesPubliesUseCase: ListArticlesPubliesUseCase,
         private readonly getArticleBySlugUseCase: GetArticleBySlugUseCase,
+        private readonly getArticlePublieBySlugUseCase: GetArticlePublieBySlugUseCase,
         private readonly deleteArticleUseCase: DeleteArticleUseCase,
         private readonly switchArticleStatutUseCase: SwitchArticleStatutUseCase,
         private readonly getArticlesByCategorieUseCase: GetArticlesByCategorieUseCase,
@@ -60,6 +65,25 @@ export class ArticleController {
             }
             if(error instanceof CategorieIntrouvableError) {
                 throw new BadRequestException(error.message);
+            }
+            throw error;
+        }
+    }
+
+    @Get('/publies')
+    async listPublies(): Promise<ArticlePublieResponseDto[]> {
+        const rows = await this.listArticlesPubliesUseCase.execute();
+        return rows.map(ArticlePublieResponseDto.fromReadModel);
+    }
+
+    @Get('/publies/:slug')
+    async getPublieBySlug(@Param('slug')slug: string): Promise<ArticlePublieResponseDto> {
+        try {
+            const article = await this.getArticlePublieBySlugUseCase.execute(slug);
+            return ArticlePublieResponseDto.fromReadModel(article);
+        } catch (error) {
+            if(error instanceof ArticleIntrouvableError) {
+                throw new NotFoundException(error.message);
             }
             throw error;
         }
@@ -194,7 +218,7 @@ export class ArticleController {
     @Get('/:id/tags')
     async listTags(@Param('id', ParseUUIDPipe) id: string): Promise<TagResponseDto[]> {
         const tags = await this.listTagsForEntityUseCase.execute(
-            TaggableTypeEnum.EXPERIENCE,
+            TaggableTypeEnum.ARTICLE,
             id,
         );
         return tags.map(TagResponseDto.fromDomain);

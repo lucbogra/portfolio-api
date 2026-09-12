@@ -1,10 +1,12 @@
-import { Body, Controller, Get, NotFoundException, Put, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, NotFoundException, Put, UseGuards } from "@nestjs/common";
 import { GetProfilUseCase } from "../../application/use-cases/get-profil.use-case.js";
 import { UpdateProfilUseCase } from "../../application/use-cases/update-profil.use-case.js";
 import { UpdateProfilDto } from "../dtos/update-profil.dto.js";
 import { ProfilResponseDto } from "../dtos/profil-response.dto.js";
 import { AuthGuard } from "src/modules/auth/auth.guard.js";
 import { ProfilIntrouvableError } from "../../domain/errors/profil-introuvable.error.js";
+import { InvalidTelephoneError } from "src/shared/domain/value-objects/telephone/telephone.errors.js";
+import { InvalidLienError } from "src/shared/domain/value-objects/lien/lien.errors.js";
 
 @Controller('profil')
 export class ProfilController {
@@ -29,17 +31,25 @@ export class ProfilController {
     @Put()
     @UseGuards(AuthGuard)
     async update(@Body() dto: UpdateProfilDto): Promise<ProfilResponseDto> {
-        const profil = await this.updateProfilUseCase.execute({
-            titre: dto.titre,
-            description: dto.description,
-            telephone: dto.telephone,
-            github: dto.github ?? null,
-            linkedin: dto.linkedin ?? null,
-            pays: dto.pays,
-            ville: dto.ville,
-            adresse: dto.adresse ?? null,
-        });
+        try {
+            const profil = await this.updateProfilUseCase.execute({
+                titre: dto.titre,
+                description: dto.description,
+                telephone: dto.telephone,
+                github: dto.github ?? null,
+                linkedin: dto.linkedin ?? null,
+                pays: dto.pays,
+                ville: dto.ville,
+                adresse: dto.adresse ?? null,
+                disponible: dto.disponible ?? true,
+            });
 
-        return ProfilResponseDto.fromDomain(profil);
+            return ProfilResponseDto.fromDomain(profil);
+        } catch (error) {
+            if (error instanceof InvalidTelephoneError || error instanceof InvalidLienError) {
+                throw new BadRequestException(error.message);
+            }
+            throw error;
+        }
     }
 }

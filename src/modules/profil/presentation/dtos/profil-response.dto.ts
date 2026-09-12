@@ -9,6 +9,7 @@ export class ProfilResponseDto {
     pays!: string;
     ville!: string;
     adresse!: string | null;
+    disponible!: boolean;
 
     static fromDomain(profil: Profil): ProfilResponseDto {
         const dto = new ProfilResponseDto();
@@ -20,6 +21,7 @@ export class ProfilResponseDto {
         dto.pays = profil.pays;
         dto.ville = profil.ville;
         dto.adresse = profil.adresse;
+        dto.disponible = profil.disponible;
 
         return dto;
     }

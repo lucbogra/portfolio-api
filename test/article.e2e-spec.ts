@@ -43,6 +43,8 @@ describe('ArticleController (e2e)', () => {
     });
 
     afterAll(async () => {
+        await prisma.taggable.deleteMany();
+        await prisma.tag.deleteMany();
         await prisma.article.deleteMany();
         await prisma.categorie.deleteMany();
         await app.close();
@@ -140,6 +142,133 @@ describe('ArticleController (e2e)', () => {
             expect(response.status).toBe(200);
             expect(Array.isArray(response.body)).toBe(true);
             expect(response.body.length).toBeGreaterThanOrEqual(1);
+        });
+    });
+
+    describe('GET /articles/publies', () => {
+        it('ne retourne que les articles publiés, avec leurs tags et leur catégorie', async () => {
+            const brouillon = await request(app.getHttpServer())
+                .post('/articles')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    slug: 'article-brouillon-publies-test',
+                    categorieId: categorieId,
+                    nom: 'Article brouillon',
+                    contenu: 'Contenu',
+                });
+
+            const publie = await request(app.getHttpServer())
+                .post('/articles')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    slug: 'article-publie-publies-test',
+                    categorieId: categorieId,
+                    nom: 'Article publié',
+                    contenu: 'Contenu',
+                });
+
+            await request(app.getHttpServer())
+                .put('/articles/statut/' + publie.body.id)
+                .set('Authorization', `Bearer ${token}`)
+                .send({ statut: 'publié' });
+
+            const tag = await request(app.getHttpServer())
+                .post('/tags')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ nom: 'Tag e2e article publie', type: 'stack' });
+
+            await request(app.getHttpServer())
+                .post(`/articles/${publie.body.id}/tags`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({ tagId: tag.body.id });
+
+            const response = await request(app.getHttpServer()).get('/articles/publies');
+
+            expect(response.status).toBe(200);
+
+            const slugs = response.body.map((a: { slug: string }) => a.slug);
+            expect(slugs).toContain('article-publie-publies-test');
+            expect(slugs).not.toContain('article-brouillon-publies-test');
+
+            const found = response.body.find(
+                (a: { slug: string }) => a.slug === 'article-publie-publies-test',
+            );
+            expect(found.categorie).toEqual(
+                expect.objectContaining({ id: categorieId }),
+            );
+            expect(found.tags).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({ id: tag.body.id, nom: 'Tag e2e article publie' }),
+                ]),
+            );
+        });
+    });
+
+    describe('GET /articles/:id/tags', () => {
+        it('retourne les tags attachés à l\'article', async () => {
+            const article = await request(app.getHttpServer())
+                .post('/articles')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    slug: 'article-liste-tags-test',
+                    categorieId: categorieId,
+                    nom: 'Article liste tags',
+                    contenu: 'Contenu',
+                });
+
+            const tag = await request(app.getHttpServer())
+                .post('/tags')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ nom: 'Tag e2e liste tags article', type: 'stack' });
+
+            await request(app.getHttpServer())
+                .post(`/articles/${article.body.id}/tags`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({ tagId: tag.body.id });
+
+            const response = await request(app.getHttpServer()).get(
+                `/articles/${article.body.id}/tags`,
+            );
+
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({ id: tag.body.id, nom: 'Tag e2e liste tags article' }),
+                ]),
+            );
+        });
+    });
+
+    describe('GET /articles/publies/:slug', () => {
+        it('retourne l\'article publié avec sa catégorie et ses tags', async () => {
+            const response = await request(app.getHttpServer()).get(
+                '/articles/publies/article-publie-publies-test',
+            );
+
+            expect(response.status).toBe(200);
+            expect(response.body.slug).toBe('article-publie-publies-test');
+            expect(response.body.categorie).toEqual(
+                expect.objectContaining({ id: categorieId }),
+            );
+            expect(response.body.tags).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({ nom: 'Tag e2e article publie' }),
+                ]),
+            );
+        });
+
+        it('retourne 404 pour un article en brouillon, même si le slug existe', async () => {
+            const response = await request(app.getHttpServer()).get(
+                '/articles/publies/article-brouillon-publies-test',
+            );
+
+            expect(response.status).toBe(404);
+        });
+
+        it('retourne 404 si le slug n\'existe pas', async () => {
+            const response = await request(app.getHttpServer()).get('/articles/publies/inexistant');
+
+            expect(response.status).toBe(404);
         });
     });
 

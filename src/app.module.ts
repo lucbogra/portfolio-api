@@ -7,6 +7,7 @@ import { ExperienceModule } from 'src/modules/experience/experience.module.js';
 import { BlogModule } from 'src/modules/blog/blog.module.js';
 import { ProfilModule } from 'src/modules/profil/profil.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { MediaModule } from 'src/modules/media/media.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
     ExperienceModule,
     BlogModule,
     ProfilModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

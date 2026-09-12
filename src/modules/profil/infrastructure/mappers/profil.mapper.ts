@@ -14,6 +14,7 @@ export class ProfilMapper {
       pays: raw.pays,
       ville: raw.ville,
       adresse: raw.adresse,
+      disponible: raw.disponible,
     });
   }
 
@@ -28,6 +29,7 @@ export class ProfilMapper {
       pays: profil.pays,
       ville: profil.ville,
       adresse: profil.adresse,
+      disponible: profil.disponible,
     };
   }
 }

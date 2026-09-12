@@ -44,7 +44,10 @@ model Projet {
   dateFin      DateTime? @map("date_fin")
   github       String?
   details      String
+  resume       String?
   lienDemo     String?   @map("lien_demo")
+  enAvant        Boolean @default(false) @map("en_avant")
+  ordreAffichage Int?    @map("ordre_affichage")
 
   experience Experience? @relation(fields: [experienceId], references: [id])
 
@@ -91,6 +94,7 @@ model Profil {
   pays        String
   ville       String
   adresse     String?
+  disponible  Boolean @default(true)
 
   @@map("profils")
 }

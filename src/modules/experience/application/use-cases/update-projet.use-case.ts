@@ -14,9 +14,12 @@ export interface updateProjetInput {
     dateDebut: Date,
     dateFin: Date|null,
     details: string,
+    resume: string|null|undefined,
     github: string|null,
     image: string|null,
     lienDemo: string|null,
+    enAvant: boolean,
+    ordreAffichage: number|null,
 }
 
 @Injectable()
@@ -33,14 +36,22 @@ export class UpdateProjetUseCase {
             throw new ProjetIntrouvableError(input.id);
         }
 
+        // La requête peut omettre `resume` (ex : PUT n'activant que `enAvant`) sans
+        // vouloir l'effacer : on reconstitue l'état final à partir de l'existant
+        // avant de laisser l'entité vérifier son invariante.
+        const resume = input.resume !== undefined ? input.resume : projet.resume;
+
         projet.update({
             nom: input.nom,
             experienceId: input.experienceId ? ExperienceId.create(input.experienceId) : null,
             periode: Periode.create(input.dateDebut, input.dateFin),
             details: input.details,
+            resume: resume,
             github: input.github ? Lien.create(input.github) : null,
             image: input.image,
-            lienDemo: input.lienDemo ? Lien.create(input.lienDemo) : null
+            lienDemo: input.lienDemo ? Lien.create(input.lienDemo) : null,
+            enAvant: input.enAvant,
+            ordreAffichage: input.ordreAffichage,
         });
 
         await this.projetRepository.save(projet);

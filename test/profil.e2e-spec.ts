@@ -147,5 +147,29 @@ describe('ProfilController (e2e)', () => {
             expect(response.body.github).toBeNull();
             expect(response.body.linkedin).toBeNull();
         });
+
+        it('considère le profil disponible par défaut', async () => {
+            const response = await request(app.getHttpServer()).get('/profil');
+
+            expect(response.status).toBe(200);
+            expect(response.body.disponible).toBe(true);
+        });
+
+        it('permet de passer le profil en indisponible', async () => {
+            const response = await request(app.getHttpServer())
+                .put('/profil')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    titre: 'Titre',
+                    description: 'Description',
+                    telephone: '+212600000000',
+                    pays: 'Maroc',
+                    ville: 'Fès',
+                    disponible: false,
+                });
+
+            expect(response.status).toBe(200);
+            expect(response.body.disponible).toBe(false);
+        });
     });
 });
