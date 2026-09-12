@@ -6,11 +6,12 @@ Ce projet sert à la fois de backend de production pour le portfolio, et de terr
 
 ## Stack technique
 
-- **Framework** : NestJS 10+ (TypeScript, ESM natif)
+- **Framework** : NestJS 11 (TypeScript, ESM natif)
 - **ORM** : Prisma 7, avec driver adapter (`@prisma/adapter-pg`)
 - **Base de données** : PostgreSQL
 - **Authentification** : JWT (implémentation maison, sans Passport)
 - **Validation** : class-validator / class-transformer
+- **Stockage média** : Cloudinary (upload d'images pour les projets/articles)
 - **Tests** : Jest (unitaires) + Supertest (end-to-end)
 
 ## Architecture
@@ -29,23 +30,26 @@ src/
     tag/                 → Tag + système de tagging polymorphe
     profil/              → Profil (singleton)
     auth/                → authentification JWT
+    media/               → upload d'images vers Cloudinary (module technique, sans couche domaine — volontairement simple)
   shared/
     domain/              → value objects et erreurs réutilisés (Slug, Periode, Lien, Telephone)
-    infrastructure/      → PrismaService, gestion d'erreurs Prisma génériques
+    infrastructure/      → PrismaService, gestion d'erreurs Prisma génériques, CloudinaryService
   app.module.ts
 ```
 
 **Principe directeur** : le domaine ne dépend jamais de l'infrastructure. Chaque agrégat définit ses interfaces de repository (les *ports*) ; les implémentations Prisma (les *adapters*) vivent en périphérie et implémentent ces interfaces.
+
+**Read models** : certaines routes de liste (`GET /projets`, `GET /experiences`, `GET /articles/publies`) ont besoin de données enrichies (relations, tags attachés) sans pour autant exposer l'entité domaine imbriquée. Ces routes s'appuient sur des `*ReadRepository` dédiés (`ProjetReadRepository`, `ExperienceReadRepository`, `ArticleReadRepository`), distincts des repositories du domaine, qui retournent un read model brut construit en au maximum deux requêtes SQL (une pour l'agrégat + ses relations directes via `include`, une seconde groupée pour les tags via `taggableId IN (...)`) — jamais une requête par élément de la liste.
 
 ### Agrégats du domaine
 
 | Agrégat | Description |
 |---|---|
 | **Experience** | Expériences professionnelles (freelance, CDI, consultant) |
-| **Projet** | Projets techniques, rattachés à une expérience ou autonomes |
+| **Projet** | Projets techniques, rattachés à une expérience ou autonomes. Peut être mis en avant (`enAvant`) avec un `ordreAffichage` et un `resume` — le `resume` est obligatoire dès que `enAvant` vaut `true` |
 | **Article** | Articles de blog, avec cycle de vie (brouillon → publié → inactif) |
 | **Categorie** | Catégories du blog |
-| **Profil** | Profil public (singleton) |
+| **Profil** | Profil public (singleton), avec un indicateur `disponible` (disponibilité pour une mission) |
 | **Tag** | Étiquettes réutilisables (stack technique, soft skills), attachables à Experience/Projet/Article via une relation polymorphe |
 
 ## Prérequis
@@ -76,6 +80,11 @@ SHADOW_DATABASE_URL="postgres://postgres:postgres@localhost:SHADOW_PORT/DBNAME?s
 JWT_SECRET="..."
 ADMIN_USERNAME="..."
 ADMIN_PASSWORD_HASH="..."
+CORS_ORIGIN="http://localhost:3001"   # optionnel, défaut http://localhost:3001
+PORT=3000                             # optionnel, défaut 3000
+CLOUDINARY_CLOUD_NAME="..."
+CLOUDINARY_API_KEY="..."
+CLOUDINARY_API_SECRET="..."
 ```
 
 ⚠️ Le driver adapter (`@prisma/adapter-pg`) utilisé par ce projet nécessite une URL Postgres **directe** — jamais le protocole proxy `prisma+postgres://`.
@@ -101,7 +110,7 @@ L'API est accessible sur `http://localhost:3000`.
 
 ## Authentification
 
-Un seul compte administrateur (pas de gestion multi-utilisateurs). Les routes de lecture (`GET`) sont publiques ; les routes d'écriture (`POST`/`PUT`/`DELETE`) nécessitent un token JWT.
+Un seul compte administrateur (pas de gestion multi-utilisateurs). Les routes d'écriture (`POST`/`PUT`/`DELETE`) nécessitent systématiquement un token JWT. La plupart des routes de lecture (`GET`) sont publiques, à l'exception de `GET /articles/:slug` (lookup admin d'un article par slug quel que soit son statut, y compris brouillon) qui exige un token — voir le tableau des endpoints pour le détail exact par route.
 
 ```bash
 POST /auth/login
@@ -117,13 +126,16 @@ Authorization: Bearer <token>
 
 | Ressource | Routes principales |
 |---|---|
-| Experiences | `GET /experiences`, `GET /experiences/:slug`, `POST/PUT/DELETE /experiences/:id` |
-| Projets | `GET /projets`, `GET /projets/autonomes`, `GET /projets/experience/:id`, `GET /projets/:slug`, `POST/PUT/DELETE` |
-| Articles | `GET /articles`, `GET /articles/:slug`, `GET /articles/categorie/:id`, `PUT /articles/statut/:id`, `POST/PUT/DELETE` |
-| Catégories | `GET /categories`, `GET /categories/:slug`, `POST/PUT/DELETE` |
-| Profil | `GET /profil`, `PUT /profil` (upsert) |
-| Tags | `GET /tags`, `GET /tags/:id`, `POST/PUT/DELETE` |
-| Tagging | `POST/DELETE /{experiences|projets|articles}/:id/tags`, `GET /{...}/:id/tags` |
+| Experiences | `GET /experiences` (liste enrichie avec tags), `GET /experiences/:slug`, `POST/PUT/DELETE /experiences/:id` (protégées) |
+| Projets | `GET /projets` (liste enrichie : expérience `{id,titre}` + tags), `GET /projets/selection` (projets mis en avant), `GET /projets/autonomes`, `GET /projets/experience/:id`, `GET /projets/:slug`, `POST/PUT/DELETE` (protégées) |
+| Articles | `GET /articles` (tous statuts, **non protégée** — voir note ci-dessous), `GET /articles/publies`, `GET /articles/publies/:slug`, `GET /articles/:slug` (protégée), `GET /articles/categorie/:id`, `PUT /articles/statut/:id` (protégée), `POST/PUT/DELETE` (protégées) |
+| Catégories | `GET /categories`, `GET /categories/:slug`, `POST/PUT/DELETE` (protégées) |
+| Profil | `GET /profil`, `PUT /profil` (upsert, protégée) |
+| Tags | `GET /tags`, `GET /tags/:id`, `POST/PUT/DELETE` (protégées) |
+| Tagging | `POST/DELETE /{experiences\|projets\|articles}/:id/tags` (protégées), `GET /{...}/:id/tags` |
+| Upload | `POST /uploads/image` (protégée, multipart, 5 Mo max) — upload vers Cloudinary, retourne `{ url }` |
+
+> ⚠️ `GET /articles` (liste complète, tous statuts confondus, brouillon inclus) n'est protégée par aucun guard aujourd'hui — à traiter comme un point d'attention plutôt qu'un choix documenté.
 
 ## Tests
 
@@ -132,6 +144,8 @@ Authorization: Bearer <token>
 ```bash
 npm test
 ```
+
+Variantes disponibles : `npm run test:watch` (mode watch), `npm run test:cov` (couverture), `npm run test:debug` (avec debugger Node).
 
 ### Tests end-to-end
 
@@ -145,8 +159,11 @@ Renseigne `.env.test` avec l'URL de cette instance (`DATABASE_URL`, `SHADOW_DATA
 ```env
 ADMIN_USERNAME="..."
 ADMIN_PASSWORD_HASH="..."
-ADMIN_PASSWORD_PLAIN="..."   # mot de passe en clair, uniquement pour les tests
+ADMIN_PASSWORD_PLAIN="..."   # mot de passe en clair, lu uniquement par les tests e2e pour se logger — jamais par le code applicatif
 JWT_SECRET="..."
+CLOUDINARY_CLOUD_NAME="..."  # peut être une valeur factice : les tests n'appellent jamais réellement Cloudinary
+CLOUDINARY_API_KEY="..."
+CLOUDINARY_API_SECRET="..."
 ```
 
 ```bash
@@ -161,3 +178,4 @@ npm run test:e2e
 - **Agrégats indépendants référencés par id** : `Projet` peut exister sans `Experience` (side-projects) — deux agrégats séparés, jamais imbriqués, cohérent avec les principes DDD sur les invariants cross-agrégats.
 - **Tagging polymorphe découplé** : le système de tags ne modifie ni ne dépend des entités `Experience`/`Projet`/`Article` — une table de jointure polymorphe (`Taggable`) gérée par un repository dédié, évitant toute duplication de logique.
 - **Traduction systématique des erreurs Prisma** (contraintes uniques, clés étrangères) en erreurs de domaine explicites, elles-mêmes traduites en codes HTTP appropriés au niveau des controllers — le domaine ne connaît jamais Prisma.
+- **Read models plafonnés à deux requêtes** : les routes de liste enrichies (`GET /projets`, `GET /experiences`, `GET /articles/publies`) passent par un `*ReadRepository` séparé du repository du domaine, jamais par l'entité — une requête pour l'agrégat + sa relation directe, une seconde groupée (`IN (...)`) pour les tags, jamais de N+1.

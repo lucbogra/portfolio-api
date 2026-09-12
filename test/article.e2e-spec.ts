@@ -288,13 +288,17 @@ describe('ArticleController (e2e)', () => {
 
     describe('GET /articles/:slug', () => {
         it('retourne 404 si le slug n\'existe pas', async () => {
-            const response = await request(app.getHttpServer()).get('/articles/inexistant');
+            const response = await request(app.getHttpServer())
+                                .get('/articles/inexistant')
+                                .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(404);
         });
 
         it('retourne l\'article si le slug existe (sans token, route publique)', async () => {
-            const response = await request(app.getHttpServer()).get('/articles/premier-article');
+            const response = await request(app.getHttpServer())
+                                .get('/articles/premier-article')
+                                .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
             expect(response.body.slug).toBe('premier-article');

@@ -96,7 +96,8 @@ export class ArticleController {
         return rows.map(ArticleResponseDto.fromDomain);
     }
 
-    @Get('/:slug') 
+    @Get('/:slug')
+    @UseGuards(AuthGuard)
     async getBySlug(@Param('slug')slug: string): Promise<ArticleResponseDto> {
         try {
             const article = await this.getArticleBySlugUseCase.execute(slug);
