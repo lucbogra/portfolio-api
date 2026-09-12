@@ -8,7 +8,6 @@ export interface ProjetRepository {
   findById(id: ProjetId): Promise<Projet | null>;
   findBySlug(slug: Slug): Promise<Projet | null>;
   findByExperienceId(experienceId: ExperienceId): Promise<Projet[]>;
-  findAutonomes(): Promise<Projet[]>; // projets sans experienceId
   findAll(): Promise<Projet[]>;
   delete(id: ProjetId): Promise<void>;
 }

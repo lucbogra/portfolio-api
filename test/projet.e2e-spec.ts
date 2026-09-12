@@ -335,6 +335,56 @@ describe('ProjetController (e2e)', () => {
 
             expect(response.body.length).toBe(1);
         });
+
+        it('inclut le tableau de tags de chaque projet', async() => {
+            const tagResponse = await request(app.getHttpServer())
+                .post('/tags')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ nom: 'NestJS-projets-autonomes', type: 'stack' });
+
+            const tagId = tagResponse.body.id;
+
+            const projetResponse = await request(app.getHttpServer())
+                .post('/projets')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    slug: 'projet-autonome-avec-tag',
+                    nom: 'projet autonome avec tag',
+                    dateDebut: '2024-05-01',
+                    dateFin: '2024-06-01',
+                    image: null,
+                    details: 'Détails du projet autonome avec tag',
+                    github: null,
+                    lienDemo: null,
+                });
+
+            const projetId = projetResponse.body.id;
+
+            await request(app.getHttpServer())
+                .post('/projets/' + projetId + '/tags')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ tagId });
+
+            const response = await request(app.getHttpServer()).get('/projets/autonomes');
+
+            expect(
+                response.body.every((p: { tags: unknown }) => Array.isArray(p.tags))
+            ).toBe(true);
+
+            const item = response.body.find((p: { id: string }) => p.id === projetId);
+            expect(item).toBeDefined();
+            expect(item.tags).toEqual([{ id: tagId, nom: 'NestJS-projets-autonomes', type: 'stack' }]);
+
+            await request(app.getHttpServer())
+                .delete('/projets/' + projetId + '/tags/' + tagId)
+                .set('Authorization', `Bearer ${token}`);
+            await request(app.getHttpServer())
+                .delete('/projets/' + projetId)
+                .set('Authorization', `Bearer ${token}`);
+            await request(app.getHttpServer())
+                .delete('/tags/' + tagId)
+                .set('Authorization', `Bearer ${token}`);
+        });
     });
 
     describe('Get /projets/experience/experienceId', () => {

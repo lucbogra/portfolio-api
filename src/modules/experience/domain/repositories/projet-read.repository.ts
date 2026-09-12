@@ -18,6 +18,7 @@ export interface ProjetListItem {
 export interface ProjetReadRepository {
   listAllWithExperienceAndTags(): Promise<ProjetListItem[]>;
   listSelectionWithExperienceAndTags(): Promise<ProjetListItem[]>;
+  listAutonomesAvecTags(): Promise<ProjetListItem[]>;
 }
 
 export const PROJET_READ_REPOSITORY = Symbol('PROJET_READ_REPOSITORY');

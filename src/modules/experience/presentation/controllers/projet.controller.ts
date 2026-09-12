@@ -91,10 +91,10 @@ export class ProjetController {
     }
 
     @Get('/autonomes')
-    async getAutonomes(): Promise<ProjetResponse[]> {
+    async getAutonomes(): Promise<ProjetAvecExperienceResponseDto[]> {
         const projets = await this.listProjetsAutonomesUseCase.execute();
 
-        return projets.map(ProjetResponse.fromDomain);
+        return projets.map(ProjetAvecExperienceResponseDto.fromReadModel);
     }
 
     @Get('/experience/:experienceId')

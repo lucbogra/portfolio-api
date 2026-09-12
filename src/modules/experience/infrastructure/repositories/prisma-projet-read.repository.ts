@@ -44,6 +44,16 @@ export class PrismaProjetReadRepository implements ProjetReadRepository {
     return this.withTags(rows);
   }
 
+  async listAutonomesAvecTags(): Promise<ProjetListItem[]> {
+    const rows: ProjetWithExperience[] = await this.prisma.projet.findMany({
+      where: { experienceId: null },
+      orderBy: { dateDebut: 'desc' },
+      include: projetWithExperienceInclude,
+    });
+
+    return this.withTags(rows);
+  }
+
   private async withTags(rows: ProjetWithExperience[]): Promise<ProjetListItem[]> {
     const projetIds = rows.map((row) => row.id);
 

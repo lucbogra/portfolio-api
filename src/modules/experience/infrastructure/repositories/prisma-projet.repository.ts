@@ -52,13 +52,6 @@ export class PrismaProjetRepository implements ProjetRepository {
     return rows.map(ProjetMapper.toDomain);
   }
 
-  async findAutonomes(): Promise<Projet[]> {
-    const rows = await this.prisma.projet.findMany({
-      where: { experienceId: null },
-    });
-    return rows.map(ProjetMapper.toDomain);
-  }
-
   async findAll(): Promise<Projet[]> {
     const rows = await this.prisma.projet.findMany({
       orderBy: { dateDebut: 'desc' },
