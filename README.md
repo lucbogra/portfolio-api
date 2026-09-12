@@ -80,7 +80,7 @@ SHADOW_DATABASE_URL="postgres://postgres:postgres@localhost:SHADOW_PORT/DBNAME?s
 JWT_SECRET="..."
 ADMIN_USERNAME="..."
 ADMIN_PASSWORD_HASH="..."
-CORS_ORIGIN="http://localhost:3001"   # optionnel, défaut http://localhost:3001
+CORS_ORIGIN="http://localhost:3001"   # liste séparée par des virgules, voir ci-dessous
 PORT=3000                             # optionnel, défaut 3000
 CLOUDINARY_CLOUD_NAME="..."
 CLOUDINARY_API_KEY="..."
@@ -88,6 +88,31 @@ CLOUDINARY_API_SECRET="..."
 ```
 
 ⚠️ Le driver adapter (`@prisma/adapter-pg`) utilisé par ce projet nécessite une URL Postgres **directe** — jamais le protocole proxy `prisma+postgres://`.
+
+### CORS
+
+`CORS_ORIGIN` accepte **plusieurs origines séparées par des virgules**. Les espaces
+superflus, la casse et une barre oblique finale sont ignorés, donc
+`https://lucbogra.com/` et `https://lucbogra.com` sont équivalents.
+
+Le caractère `*` est accepté dans une origine et remplace **un seul segment de
+domaine** (sans point). C'est ce qui permet de couvrir les URL de préversion
+Vercel, dont le hachage change à chaque déploiement :
+
+```env
+CORS_ORIGIN="https://lucbogra.com,https://www.lucbogra.com,https://portfolio-next-*-lucbogra.vercel.app"
+```
+
+Si `CORS_ORIGIN` est absente ou vide :
+
+- hors production, repli sur `http://localhost:3001` et `http://127.0.0.1:3001`, avec un avertissement au démarrage ;
+- en production, **aucune** origine inter-domaine n'est autorisée, avec un avertissement au démarrage.
+
+Au démarrage, l'API journalise la liste des origines effectivement autorisées
+sous le contexte `Cors`.
+
+Les jetons sont transmis par l'en-tête `Authorization: Bearer`, pas par cookie :
+`credentials` est donc désactivé côté CORS.
 
 Génère le hash du mot de passe admin :
 ```bash
